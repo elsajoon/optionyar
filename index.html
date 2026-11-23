@@ -1,0 +1,1888 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>آپشن‌یار | تحلیلگر و آموزش اختیار معامله</title>
+    <meta name="theme-color" content="#2563eb">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="آپشن‌یار">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Vazirmatn', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Vazirmatn Persian Font -->
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            overflow-x: hidden;
+        }
+        input, select, textarea {
+            user-select: text;
+            -webkit-user-select: text;
+        }
+        /* Custom Range Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 22px;
+            width: 22px;
+            border-radius: 50%;
+            background: #2563eb;
+            border: 3px solid #ffffff;
+            cursor: pointer;
+            margin-top: -8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+            transition: transform 0.15s ease;
+        }
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: #94a3b8;
+            border-radius: 999px;
+        }
+        .dark input[type=range]::-webkit-slider-runnable-track {
+            background: #334155;
+        }
+        .dir-ltr {
+            direction: ltr;
+            display: inline-block;
+        }
+        /* Custom slim scrollbar for internal panels */
+        .custom-scroll::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.35);
+            border-radius: 999px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.6);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200 min-h-screen lg:h-screen lg:overflow-hidden flex flex-col">
+
+    <!-- License Lock Overlay (Disabled by default for Cafe Bazaar / Myket / Google Play Store publishing) -->
+    <div id="licenseOverlay" class="fixed inset-0 z-50 hidden bg-slate-900/95 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl text-center">
+            <div class="w-16 h-16 bg-blue-600/10 text-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <h2 class="text-xl font-bold mb-2">فعال‌سازی نسخه حرفه‌ای</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-5">لطفاً کد لایسنس اختصاصی خود را برای فعال‌سازی دائم روی این دستگاه وارد نمایید.</p>
+            <input type="text" id="licenseInput" placeholder="مثلاً: OPT-2026-PRO1" class="w-full text-center tracking-widest uppercase font-mono text-base p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <p id="licenseError" class="text-xs text-rose-500 mb-3 hidden">کد لایسنس وارد شده معتبر نیست!</p>
+            <button onclick="verifyLicense()" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold transition shadow-lg shadow-blue-600/20">
+                تأیید و ورود به برنامه
+            </button>
+        </div>
+    </div>
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-30 shrink-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-3 sm:px-4 py-2">
+        <div class="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-2">
+            <!-- App Brand -->
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+                    <i class="fa-solid fa-chart-line text-base"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-sm sm:text-base tracking-tight">آپشن‌یار</h1>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400">تحلیلگر سود و زیان و آکادمی اختیار معامله</p>
+                </div>
+            </div>
+
+            <!-- Header Action Buttons -->
+            <div class="flex items-center gap-1.5 sm:gap-2">
+                <button onclick="openModal('guideModal')" class="px-2.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>آموزش</span>
+                </button>
+                <button onclick="triggerPwaInstall()" class="px-2.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition">
+                    <i class="fa-solid fa-download"></i>
+                    <span class="hidden sm:inline">نصب برنامه</span>
+                </button>
+                <button onclick="toggleTheme()" title="تغییر تم روشن / تاریک" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-amber-500 transition">
+                    <i id="themeIcon" class="fa-solid fa-sun"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="max-w-[1600px] w-full mx-auto px-3 sm:px-4 py-2.5 flex-1 flex flex-col gap-2.5 min-h-0">
+
+        <!-- Quick Presets Bar with Symbolic Mini Payoff Diagrams -->
+        <div class="shrink-0 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 shadow-sm">
+            <div class="flex flex-wrap items-center justify-between gap-1.5">
+                <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                    <i class="fa-solid fa-wand-magic-sparkles text-blue-500"></i>
+                    استراتژی‌های آماده:
+                </span>
+                <div class="flex flex-wrap items-center gap-1">
+                    <button onclick="applyPreset('singleCall')" class="px-2 py-1 rounded-lg text-[11px] font-medium bg-slate-100 dark:bg-slate-800 hover:bg-blue-600 hover:text-white transition inline-flex items-center gap-1.5">
+                        <svg class="w-4 h-3 shrink-0" viewBox="0 0 24 16" fill="none"><path d="M2 13H11L22 3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <span>خرید کال</span>
+                    </button>
+                    <button onclick="applyPreset('singlePut')" class="px-2 py-1 rounded-lg text-[11px] font-medium bg-slate-100 dark:bg-slate-800 hover:bg-blue-600 hover:text-white transition inline-flex items-center gap-1.5">
+                        <svg class="w-4 h-3 shrink-0" viewBox="0 0 24 16" fill="none"><path d="M2 3L13 13H22" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <span>خرید پوت</span>
+                    </button>
+                    <button onclick="applyPreset('coveredCall')" class="px-2 py-1 rounded-lg text-[11px] font-medium bg-slate-100 dark:bg-slate-800 hover:bg-blue-600 hover:text-white transition inline-flex items-center gap-1.5">
+                        <svg class="w-4 h-3 shrink-0" viewBox="0 0 24 16" fill="none"><path d="M2 14L13 4H22" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <span>کاور کال</span>
+                    </button>
+                    <button onclick="applyPreset('protectivePut')" class="px-2 py-1 rounded-lg text-[11px] font-medium bg-slate-100 dark:bg-slate-800 hover:bg-blue-600 hover:text-white transition inline-flex items-center gap-1.5">
+                        <svg class="w-4 h-3 shrink-0" viewBox="0 0 24 16" fill="none"><path d="M2 12H11L22 2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <span>پوت حمایتی</span>
+                    </button>
+                    <button onclick="applyPreset('bullCallSpread')" class="px-2 py-1 rounded-lg text-[11px] font-medium bg-slate-100 dark:bg-slate-800 hover:bg-blue-600 hover:text-white transition inline-flex items-center gap-1.5">
+                        <svg class="w-4 h-3 shrink-0" viewBox="0 0 24 16" fill="none"><path d="M2 13H8L16 3H22" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <span>اسپرد صعودی</span>
+                    </button>
+                    <button onclick="applyPreset('bearPutSpread')" class="px-2 py-1 rounded-lg text-[11px] font-medium bg-slate-100 dark:bg-slate-800 hover:bg-blue-600 hover:text-white transition inline-flex items-center gap-1.5">
+                        <svg class="w-4 h-3 shrink-0" viewBox="0 0 24 16" fill="none"><path d="M2 3H8L16 13H22" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <span>اسپرد نزولی</span>
+                    </button>
+                    <button onclick="applyPreset('straddle')" class="px-2 py-1 rounded-lg text-[11px] font-medium bg-slate-100 dark:bg-slate-800 hover:bg-blue-600 hover:text-white transition inline-flex items-center gap-1.5">
+                        <svg class="w-4 h-3 shrink-0" viewBox="0 0 24 16" fill="none"><path d="M2 3L12 13L22 3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <span>استرادل</span>
+                    </button>
+                    <button onclick="applyPreset('ironCondor')" class="px-2 py-1 rounded-lg text-[11px] font-medium bg-slate-100 dark:bg-slate-800 hover:bg-blue-600 hover:text-white transition inline-flex items-center gap-1.5">
+                        <svg class="w-4 h-3 shrink-0" viewBox="0 0 24 16" fill="none"><path d="M2 13H5L8 4H16L19 13H22" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <span>آیرون کاندور</span>
+                    </button>
+                    <button onclick="applyPreset('butterfly')" class="px-2 py-1 rounded-lg text-[11px] font-medium bg-slate-100 dark:bg-slate-800 hover:bg-blue-600 hover:text-white transition inline-flex items-center gap-1.5">
+                        <svg class="w-4 h-3 shrink-0" viewBox="0 0 24 16" fill="none"><path d="M2 13H6L12 3L18 13H22" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <span>پروانه‌ای</span>
+                    </button>
+                    <button onclick="resetAll()" class="px-2 py-1 rounded-lg text-[11px] font-medium bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500 hover:text-white transition">پاک کردن</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Two-Column Workspace Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-2.5 flex-1 min-h-0">
+
+            <!-- Right Column: Inputs & Option Legs (5 cols on lg, internal scroll only if many legs) -->
+            <div class="lg:col-span-5 flex flex-col gap-2.5 lg:h-full lg:overflow-hidden">
+
+                <!-- Underlying Asset Card -->
+                <div class="shrink-0 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <h2 class="font-bold text-xs sm:text-sm flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                            دارایی پایه (سهم / شاخص)
+                        </h2>
+                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-[11px] font-medium text-slate-600 dark:text-slate-300">
+                            <input type="checkbox" id="includeUnderlying" checked onchange="handleUnderlyingChange()" class="w-3.5 h-3.5 rounded text-blue-600 focus:ring-blue-500">
+                            <span>شامل سهام پایه در محاسبه</span>
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">قیمت فعلی دارایی پایه</label>
+                            <input type="number" id="spotPrice" value="10000" step="10" oninput="onSpotPriceInput()" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-bold text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div id="underlyingQtyGroup">
+                            <label class="block text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">تعداد سهم (+ خرید / - فروش)</label>
+                            <input type="number" id="underlyingQty" value="1000" step="100" oninput="handleUnderlyingChange()" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-bold text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+
+                    <!-- Fee Settings -->
+                    <div class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 text-[11px]">
+                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-600 dark:text-slate-300">
+                            <input type="checkbox" id="includeFees" onchange="updateCalculations()" class="w-3.5 h-3.5 rounded text-blue-600 focus:ring-blue-500">
+                            <span>کسر کارمزد معاملات</span>
+                        </label>
+                        <div class="flex items-center gap-1">
+                            <span class="text-slate-500 dark:text-slate-400">نرخ کارمزد (%):</span>
+                            <input type="number" id="feeRate" value="0.2" step="0.05" min="0" oninput="updateCalculations()" class="w-14 py-0.5 text-center rounded border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-semibold">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Option Legs Card -->
+                <div class="flex-1 min-h-0 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 shadow-sm flex flex-col">
+                    <div class="shrink-0 flex items-center justify-between mb-2">
+                        <h2 class="font-bold text-xs sm:text-sm flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                            قراردادهای اختیار معامله
+                        </h2>
+                        <span id="activeLegsCount" class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold">۰ موقعیت فعال</span>
+                    </div>
+
+                    <!-- Quick 4-Button Add Bar -->
+                    <div class="shrink-0 grid grid-cols-4 gap-1.5 mb-2.5">
+                        <button onclick="addOptionLeg('call', 'buy')" class="py-1.5 px-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 text-[11px] font-bold flex items-center justify-center gap-1 transition">
+                            <i class="fa-solid fa-plus text-[10px]"></i>
+                            <span>خرید کال</span>
+                        </button>
+                        <button onclick="addOptionLeg('call', 'sell')" class="py-1.5 px-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-500/20 text-[11px] font-bold flex items-center justify-center gap-1 transition">
+                            <i class="fa-solid fa-minus text-[10px]"></i>
+                            <span>فروش کال</span>
+                        </button>
+                        <button onclick="addOptionLeg('put', 'buy')" class="py-1.5 px-1 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-700 dark:text-sky-400 border border-sky-500/20 text-[11px] font-bold flex items-center justify-center gap-1 transition">
+                            <i class="fa-solid fa-plus text-[10px]"></i>
+                            <span>خرید پوت</span>
+                        </button>
+                        <button onclick="addOptionLeg('put', 'sell')" class="py-1.5 px-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/20 text-[11px] font-bold flex items-center justify-center gap-1 transition">
+                            <i class="fa-solid fa-minus text-[10px]"></i>
+                            <span>فروش پوت</span>
+                        </button>
+                    </div>
+
+                    <!-- Dynamic Legs Container -->
+                    <div id="legsContainer" class="flex-1 overflow-y-auto custom-scroll space-y-2 pr-0.5">
+                        <!-- Rendered dynamically via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Left Column: Simulator, KPIs, Chart & Breakdown Table (7 cols on lg, zero page scroll) -->
+            <div class="lg:col-span-7 flex flex-col gap-2.5 lg:h-full lg:overflow-hidden">
+
+                <!-- Price Buffer & Target Simulator Card -->
+                <div class="shrink-0 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 shadow-sm">
+                    <div class="flex items-center justify-between gap-2 mb-1.5">
+                        <h2 class="font-bold text-xs sm:text-sm flex items-center gap-1.5">
+                            <i class="fa-solid fa-sliders text-blue-500"></i>
+                            شبیه‌ساز تغییر قیمت سررسید (بافر و عدد هدف)
+                        </h2>
+                        <span id="targetPctBadge" class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 dark:bg-slate-800 dir-ltr">0.00%</span>
+                    </div>
+
+                    <!-- Range Slider -->
+                    <div class="my-2 px-1">
+                        <input type="range" id="priceSlider" min="5000" max="15000" step="10" value="10000" oninput="onSliderChange(this.value)" class="w-full">
+                        <div class="flex justify-between text-[10px] text-slate-400 mt-0.5 font-mono">
+                            <span id="sliderMinLabel">5,000</span>
+                            <span id="sliderSpotLabel" class="text-blue-500 font-bold">قیمت فعلی: 10,000</span>
+                            <span id="sliderMaxLabel">15,000</span>
+                        </div>
+                    </div>
+
+                    <!-- Percentage Buffer Buttons + Manual Input in one compact row -->
+                    <div class="grid grid-cols-1 xl:grid-cols-12 gap-2 items-center mt-2">
+                        <div class="xl:col-span-7 grid grid-cols-6 gap-1">
+                            <button onclick="adjustTargetByPercent(-10)" class="py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-bold text-[11px] dir-ltr transition">-10%</button>
+                            <button onclick="adjustTargetByPercent(-5)" class="py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-bold text-[11px] dir-ltr transition">-5%</button>
+                            <button onclick="adjustTargetByPercent(-1)" class="py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-bold text-[11px] dir-ltr transition">-1%</button>
+                            <button onclick="adjustTargetByPercent(1)" class="py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold text-[11px] dir-ltr transition">+1%</button>
+                            <button onclick="adjustTargetByPercent(5)" class="py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold text-[11px] dir-ltr transition">+5%</button>
+                            <button onclick="adjustTargetByPercent(10)" class="py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold text-[11px] dir-ltr transition">+10%</button>
+                        </div>
+                        <div class="xl:col-span-5 flex items-center gap-1.5">
+                            <input type="number" id="targetPriceInput" value="10000" step="10" placeholder="قیمت هدف" oninput="onManualTargetInput(this.value)" class="w-full py-1.5 px-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-bold text-xs text-center focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <button onclick="resetTargetToSpot()" title="بازگشت به قیمت فعلی" class="px-2.5 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-[11px] font-semibold whitespace-nowrap transition">
+                                قیمت فعلی
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary KPI Cards -->
+                <div class="shrink-0 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <!-- Total Net PnL -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 shadow-sm">
+                        <div class="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
+                            <span>سود / زیان کل</span>
+                            <span id="kpiRoi" class="font-medium dir-ltr">0%</span>
+                        </div>
+                        <div id="kpiTotalPnl" class="text-sm sm:text-base font-extrabold dir-ltr mt-0.5">0</div>
+                    </div>
+
+                    <!-- Breakeven Points -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 shadow-sm">
+                        <div class="text-[10px] text-slate-500 dark:text-slate-400">نقطه سر به سر (صفر)</div>
+                        <div id="kpiBreakeven" class="text-xs sm:text-sm font-bold text-amber-500 dir-ltr mt-0.5 truncate">—</div>
+                    </div>
+
+                    <!-- Max Profit -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 shadow-sm">
+                        <div class="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
+                            <span>حداکثر سود</span>
+                            <span id="kpiRiskReward" class="dir-ltr">R/R: —</span>
+                        </div>
+                        <div id="kpiMaxProfit" class="text-xs sm:text-sm font-bold text-emerald-500 dir-ltr mt-0.5">0</div>
+                    </div>
+
+                    <!-- Max Loss -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 shadow-sm">
+                        <div class="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
+                            <span>حداکثر زیان</span>
+                            <span id="kpiNetPremium" class="dir-ltr truncate max-w-[85px]">صرف: 0</span>
+                        </div>
+                        <div id="kpiMaxLoss" class="text-xs sm:text-sm font-bold text-rose-500 dir-ltr mt-0.5">0</div>
+                    </div>
+                </div>
+
+                <!-- Payoff Chart Card (Flexible height to fill remaining screen) -->
+                <div class="flex-1 min-h-[210px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 shadow-sm flex flex-col">
+                    <div class="shrink-0 flex items-center justify-between mb-1.5">
+                        <h2 class="font-bold text-xs sm:text-sm flex items-center gap-1.5">
+                            <i class="fa-solid fa-chart-area text-indigo-500"></i>
+                            نمودار سود و زیان (Payoff Diagram)
+                        </h2>
+                        <button onclick="copySummaryReport()" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-blue-600 hover:text-white text-[11px] font-medium flex items-center gap-1 transition">
+                            <i class="fa-regular fa-copy"></i>
+                            <span>کپی گزارش</span>
+                        </button>
+                    </div>
+                    <div class="relative flex-1 w-full min-h-0">
+                        <canvas id="payoffChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Detailed Breakdown Table (Compact fixed max-height with internal scroll) -->
+                <div class="shrink-0 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 shadow-sm">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <h3 class="font-bold text-xs flex items-center gap-1.5">
+                            <i class="fa-solid fa-table-list text-blue-500"></i>
+                            تفکیک سود و زیان هر موقعیت در قیمت هدف
+                        </h3>
+                    </div>
+                    <div class="max-h-28 overflow-y-auto custom-scroll">
+                        <table class="w-full text-[11px] sm:text-xs text-right">
+                            <thead class="sticky top-0 bg-white dark:bg-slate-900">
+                                <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400">
+                                    <th class="py-1 px-1.5">موقعیت</th>
+                                    <th class="py-1 px-1.5">اعمال / ورود</th>
+                                    <th class="py-1 px-1.5">پرمیوم</th>
+                                    <th class="py-1 px-1.5">تعداد</th>
+                                    <th class="py-1 px-1.5 text-left">سود / زیان</th>
+                                </tr>
+                            </thead>
+                            <tbody id="breakdownTableBody" class="divide-y divide-slate-100 dark:divide-slate-800/70">
+                                <!-- Populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Comprehensive Beginner's Guide Modal (Options Academy) -->
+    <div id="guideModal" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-5xl w-full max-h-[94vh] flex flex-col shadow-2xl">
+            <!-- Modal Header -->
+            <div class="p-3.5 sm:p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0 bg-gradient-to-l from-emerald-500/5 via-blue-500/5 to-transparent">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center text-2xl shrink-0">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-sm sm:text-base">آکادمی جامع اختیار معامله (از زبان ساده بورس تا مدیریت مالی پیشرفته)</h3>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">دوره کامل ۶ فصلی برای رفع ابهام سهامداران، شناخت دقیق ریسک‌ها و تسلط بر استراتژی‌های آپشن</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('guideModal')" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-rose-500 hover:text-white transition shrink-0">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Interactive 6-Chapter Academy Navigation -->
+            <div class="px-3 sm:px-4 pt-2.5 border-b border-slate-200 dark:border-slate-800 flex gap-1.5 overflow-x-auto text-xs font-bold shrink-0 custom-scroll">
+                <button onclick="switchGuideTab('tabBasics')" id="btn_tabBasics" class="guide-tab-btn px-3 py-2 rounded-t-lg border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 whitespace-nowrap">فصل ۱: فلسفه و زبان ساده آپشن</button>
+                <button onclick="switchGuideTab('tabFourPositions')" id="btn_tabFourPositions" class="guide-tab-btn px-3 py-2 rounded-t-lg border-b-2 border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 whitespace-nowrap">فصل ۲: کالبدشکافی ۴ موقعیت و ریسک</button>
+                <button onclick="switchGuideTab('tabMarginSettlement')" id="btn_tabMarginSettlement" class="guide-tab-btn px-3 py-2 rounded-t-lg border-b-2 border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 whitespace-nowrap">فصل ۳: وجه تضمین و تسویه</button>
+                <button onclick="switchGuideTab('tabTermsGreeks')" id="btn_tabTermsGreeks" class="guide-tab-btn px-3 py-2 rounded-t-lg border-b-2 border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 whitespace-nowrap">فصل ۴: قیمت‌گذاری و یونانی‌ها (Greeks)</button>
+                <button onclick="switchGuideTab('tabStrategies')" id="btn_tabStrategies" class="guide-tab-btn px-3 py-2 rounded-t-lg border-b-2 border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 whitespace-nowrap">فصل ۵: استراتژی‌های ترکیبی</button>
+                <button onclick="switchGuideTab('tabAppUsage')" id="btn_tabAppUsage" class="guide-tab-btn px-3 py-2 rounded-t-lg border-b-2 border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 whitespace-nowrap">فصل ۶: راهنمای ماشین‌حساب و مدیریت سرمایه</button>
+            </div>
+
+            <!-- Modal Content -->
+            <div id="guideScrollArea" class="p-4 sm:p-6 overflow-y-auto custom-scroll space-y-5 text-xs sm:text-sm leading-relaxed text-slate-700 dark:text-slate-300 flex-1">
+                
+                <!-- CHAPTER 1: Basics & Philosophy -->
+                <div id="tabBasics" class="guide-tab-content space-y-4">
+                    <div class="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 space-y-2.5">
+                        <h4 class="font-extrabold text-blue-600 dark:text-blue-400 text-sm sm:text-base flex items-center gap-2">
+                            <i class="fa-solid fa-heart-pulse"></i>
+                            چرا نباید از بازار اختیار معامله بترسیم؟ (توضیح به زبان کاملاً ساده)
+                        </h4>
+                        <p>بسیاری از سهامداران باسابقه که سال‌ها در بورس سهم خرید و فروش کرده‌اند، به محض شنیدن نام «اختیار معامله» فکر می‌کنند با یک بازار پیچیده و پرخطر روبه‌رو هستند. حقیقت کاملاً برعکس است: <strong>اختیار معامله ابزاری است که برای «امنیت بیشتر» و «کاهش ریسک» ساخته شده است.</strong></p>
+                        <p>در بازار سهام معمولی، شما فقط یک راه برای سود کردن دارید: سهمی را بخرید و دعا کنید قیمتش بالا برود! اگر بازار راکد باشد یا ریزش کند، دست شما بسته است. اما در بازار اختیار معامله، شما می‌توانید از <strong>رشد بازار، ریزش بازار و حتی درجا زدن قیمت سهم</strong> سود کسب کنید یا سهام خود را در برابر سقوط بیمه نمایید.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 rounded-xl bg-slate-100 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 space-y-2.5">
+                            <h5 class="font-bold text-indigo-500 text-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-file-contract"></i>
+                                دو قرارداد پایه در بازار اختیار معامله
+                            </h5>
+                            <p class="text-xs leading-relaxed">تمام قراردادهای آپشن در دنیا از دو نوع پایه خارج نیستند:</p>
+                            <div class="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs">
+                                <strong class="text-emerald-600 dark:text-emerald-400 block mb-1">۱. اختیار خرید (Call Option):</strong>
+                                موضوع این قرارداد <strong>«خرید سهام»</strong> در آینده با یک قیمت از پیش تعیین‌شده است. در تابلوی بورس ایران، نمادهای اختیار خرید معمولاً با حرف <strong>«ض»</strong> شروع می‌شوند (مثلاً <code>ضخود</code> برای ایران‌خودرو یا <code>ضهرم</code> برای اهرم).
+                            </div>
+                            <div class="p-2.5 rounded-lg bg-sky-500/10 border border-sky-500/20 text-xs">
+                                <strong class="text-sky-600 dark:text-sky-400 block mb-1">۲. اختیار فروش (Put Option):</strong>
+                                موضوع این قرارداد <strong>«فروش سهام»</strong> در آینده با یک قیمت از پیش تعیین‌شده است. در بورس ایران، نمادهای اختیار فروش معمولاً با حرف <strong>«ط»</strong> شروع می‌شوند (مثلاً <code>طخود</code> یا <code>طهرم</code>).
+                            </div>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 space-y-2.5">
+                            <h5 class="font-bold text-amber-600 dark:text-amber-400 text-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-scale-balanced"></i>
+                                مهم‌ترین قانون آپشن: تفاوت «خریدار» و «فروشنده»
+                            </h5>
+                            <p class="text-xs leading-relaxed">در هر معامله (چه کال و چه پوت)، شما مختار هستید که در نقش <strong>خریدار</strong> ظاهر شوید یا در نقش <strong>فروشنده</strong>:</p>
+                            <ul class="space-y-2 text-xs leading-relaxed">
+                                <li class="p-2 rounded-lg bg-white/70 dark:bg-slate-900/70">
+                                    <strong class="text-blue-600 dark:text-blue-400">خریدار قرارداد (Long):</strong> مبلغی را به عنوان حق‌الزحمه (پرمیوم) می‌پردازد و <strong>«حق انتخاب»</strong> می‌خرد. اگر در سررسید قیمت بازار به نفعش بود قرارداد را اجرا می‌کند، و اگر به ضررش بود هیچ اجباری ندارد و کنار می‌کشد.
+                                </li>
+                                <li class="p-2 rounded-lg bg-white/70 dark:bg-slate-900/70">
+                                    <strong class="text-rose-600 dark:text-rose-400">فروشنده قرارداد (Short / نویسنده):</strong> همان روز اول پول (پرمیوم) را نقد می‌گیرد، اما در مقابل <strong>«متعهد»</strong> است که اگر خریدار درخواست اجرا داد، حتماً قرارداد را انجام دهد.
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 space-y-3">
+                        <h5 class="font-bold text-emerald-600 dark:text-emerald-400 text-sm flex items-center gap-1.5">
+                            <i class="fa-solid fa-house-chimney"></i>
+                            دو مثال واقعی از زندگی روزمره برای درک ۱۰۰٪ موضوع:
+                        </h5>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs leading-relaxed">
+                            <div class="p-3 rounded-lg bg-white/80 dark:bg-slate-900/80 border border-emerald-500/20">
+                                <strong class="text-emerald-600 dark:text-emerald-400 block mb-1">مثال اول (اختیار خرید / Call = قولنامه با حق فسخ خریدار):</strong>
+                                یک ملک <strong>۱۰ میلیارد تومانی</strong> را پسندیده‌اید اما پولتان تا ۲ ماه دیگر آماده می‌شود. به فروشنده <strong>۲۰۰ میلیون تومان</strong> می‌دهید و قرارداد می‌بندید که تا ۲ ماه آینده حق دارید این ملک را ۱۰ میلیارد بخرید. اگر ملک ۱۲ میلیارد شود، شما ۱۰ میلیارد می‌خرید و ۲ میلیارد سود می‌کنید (منهای ۲۰۰ میلیون بیعانه = ۱.۸ میلیارد سود خالص). اگر ملک ارزان شود و ۸ میلیارد شود، قرارداد را فسخ می‌کنید و فقط همان ۲۰۰ میلیون را از دست داده‌اید.
+                            </div>
+                            <div class="p-3 rounded-lg bg-white/80 dark:bg-slate-900/80 border border-sky-500/20">
+                                <strong class="text-sky-600 dark:text-sky-400 block mb-1">مثال دوم (اختیار فروش / Put = بیمه‌نامه بدنه خودرو):</strong>
+                                شما خودرویی به ارزش <strong>۱ میلیارد تومان</strong> دارید و نگران تصادف یا افت قیمت آن هستید. مبلغ <strong>۲۰ میلیون تومان</strong> به شرکت بیمه می‌دهید تا خودروی شما را تا ۱ سال به قیمت ۱ میلیارد تومان بیمه کند. اگر خودرو سالم بماند، شما فقط همان ۲۰ میلیون حق بیمه را داده‌اید؛ اما اگر حادثه‌ای رخ دهد و ارزش خودرو به ۴۰۰ میلیون برسد، شرکت بیمه موظف است خسارت شما را جبران کند.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CHAPTER 2: Deep Dive into All 4 Positions & Risk -->
+                <div id="tabFourPositions" class="guide-tab-content hidden space-y-4">
+                    <div class="p-3.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
+                        <h4 class="font-extrabold text-indigo-600 dark:text-indigo-400 text-sm mb-1">معامله‌گر می‌تواند در هر ۴ موقعیت قرار بگیرد!</h4>
+                        <p class="text-xs leading-relaxed">بسیاری از افراد تصور می‌کنند فقط باید قرارداد اختیار را بخرند؛ در حالی که در تابلوی بورس، به ازای هر قرارداد کال یا پوت، شما می‌توانید هم دکمه <strong>«خرید»</strong> را بزنید و هم دکمه <strong>«فروش»</strong> را (حتی بدون اینکه قبلاً آن قرارداد را خریده باشید!). در ادامه هر ۴ موقعیت را با حوصله، مثال عددی و میزان ریسک بررسی می‌کنیم:</p>
+                    </div>
+
+                    <!-- 2x2 Grid of all 4 Positions -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- 1. Long Call -->
+                        <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex flex-col justify-between space-y-2.5">
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <h5 class="font-extrabold text-emerald-600 dark:text-emerald-400 text-sm">۱. خریدار کال (Long Call)</h5>
+                                    <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold">ریسک کم و محدود</span>
+                                </div>
+                                <p class="text-xs leading-relaxed"><strong>دیدگاه معامله‌گر:</strong> صعودی قوی (انتظار دارد قیمت سهم تا سررسید رشد چشمگیری کند).</p>
+                                <p class="text-xs leading-relaxed"><strong>مثال عددی:</strong> قیمت سهم ۱۰٬۰۰۰ ریال است. شما اختیار خرید با قیمت اعمال ۱۰٬۵۰۰ ریال را به قیمت (پرمیوم) ۵۰۰ ریال می‌خرید. نقطه سر به سر شما <strong>۱۱٬۰۰۰ ریال</strong> است. اگر سهم به ۱۳٬۰۰۰ ریال برسد، شما ۲٬۵۰۰ ریال ناخالص (و ۲٬۰۰۰ ریال سود خالص، یعنی ۴۰۰٪ بازدهی!) سود می‌کنید. اگر سهم ریزش کند و ۵٬۰۰۰ ریال شود، کل ضرر شما همان ۵۰۰ ریال اولیه است.</p>
+                                <div class="text-[11px] bg-white/60 dark:bg-slate-900/60 p-2 rounded-lg space-y-0.5">
+                                    <div>• <strong>حداکثر سود:</strong> نامحدود (متناسب با رشد قیمت سهم)</div>
+                                    <div>• <strong>حداکثر زیان:</strong> محدود به پرمیوم پرداختی (۵۰۰ ریال)</div>
+                                    <div>• <strong>وجه تضمین:</strong> نیاز ندارد</div>
+                                </div>
+                            </div>
+                            <div class="bg-white/90 dark:bg-slate-900/90 rounded-lg p-2 border border-emerald-500/20">
+                                <svg class="w-full h-20" viewBox="0 0 240 80">
+                                    <line x1="15" y1="45" x2="225" y2="45" stroke="#64748b" stroke-dasharray="3,3" stroke-width="1"/>
+                                    <path d="M 20 62 L 115 62 L 205 12" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
+                                    <circle cx="145" cy="45" r="3.5" fill="#f59e0b"/>
+                                    <text x="65" y="56" fill="#f43f5e" font-size="9" font-family="Vazirmatn" text-anchor="middle">زیان ثابت (پرمیوم)</text>
+                                    <text x="190" y="32" fill="#10b981" font-size="9" font-family="Vazirmatn" text-anchor="middle">سود نامحدود</text>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- 2. Short Call -->
+                        <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/25 flex flex-col justify-between space-y-2.5">
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <h5 class="font-extrabold text-rose-600 dark:text-rose-400 text-sm">۲. فروشنده کال (Short Call)</h5>
+                                    <span class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[10px] font-bold">پُرریسک‌ترین موقعیت!</span>
+                                </div>
+                                <p class="text-xs leading-relaxed"><strong>دیدگاه معامله‌گر:</strong> خنثی یا نزولی (معتقد است قیمت سهم از قیمت اعمال بالاتر نمی‌رود).</p>
+                                <p class="text-xs leading-relaxed"><strong>مثال عددی:</strong> در مثال قبل، شما همان قرارداد اعمال ۱۰٬۵۰۰ را به قیمت ۵۰۰ ریال می‌فروشید. همان لحظه ۵۰۰ ریال به حساب شما واریز می‌شود. تا زمانی که سهم زیر ۱۰٬۵۰۰ بماند، کل ۵۰۰ ریال سود خالص شماست. اما اگر سهم ناگهان صعود کند و به ۱۵٬۰۰۰ ریال برسد، شما مجبورید سهم ۱۵٬۰۰۰ ریالی را ۱۰٬۵۰۰ به خریدار بدهید و ۴٬۰۰۰ ریال ضرر خالص می‌دهید!</p>
+                                <div class="text-[11px] bg-white/60 dark:bg-slate-900/60 p-2 rounded-lg space-y-0.5">
+                                    <div>• <strong>حداکثر سود:</strong> محدود به پرمیوم دریافتی (۵۰۰ ریال)</div>
+                                    <div>• <strong>حداکثر زیان:</strong> <strong>نامحدود</strong> (اگر سهام پایه را نداشته باشید)</div>
+                                    <div>• <strong>وجه تضمین:</strong> الزامی (بلوکه شدن پول در کارگزاری)</div>
+                                </div>
+                            </div>
+                            <div class="bg-white/90 dark:bg-slate-900/90 rounded-lg p-2 border border-rose-500/20">
+                                <svg class="w-full h-20" viewBox="0 0 240 80">
+                                    <line x1="15" y1="35" x2="225" y2="35" stroke="#64748b" stroke-dasharray="3,3" stroke-width="1"/>
+                                    <path d="M 20 18 L 115 18 L 205 68" fill="none" stroke="#f43f5e" stroke-width="3" stroke-linecap="round"/>
+                                    <circle cx="145" cy="35" r="3.5" fill="#f59e0b"/>
+                                    <text x="65" y="13" fill="#10b981" font-size="9" font-family="Vazirmatn" text-anchor="middle">سود محدود (پرمیوم)</text>
+                                    <text x="188" y="55" fill="#f43f5e" font-size="9" font-family="Vazirmatn" text-anchor="middle">زیان نامحدود با رشد سهم</text>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- 3. Long Put -->
+                        <div class="p-4 rounded-xl bg-sky-500/10 border border-sky-500/25 flex flex-col justify-between space-y-2.5">
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <h5 class="font-extrabold text-sky-600 dark:text-sky-400 text-sm">۳. خریدار پوت (Long Put)</h5>
+                                    <span class="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-700 dark:text-sky-300 text-[10px] font-bold">ریسک کم و محدود</span>
+                                </div>
+                                <p class="text-xs leading-relaxed"><strong>دیدگاه معامله‌گر:</strong> نزولی (انتظار ریزش بازار دارد یا می‌خواهد سبد سهام خود را بیمه کند).</p>
+                                <p class="text-xs leading-relaxed"><strong>مثال عددی:</strong> قیمت سهم ۱۰٬۰۰۰ ریال است. شما اختیار فروش با قیمت اعمال ۹٬۵۰۰ ریال را با پرمیوم ۴۰۰ ریال می‌خرید. نقطه سر به سر <strong>۹٬۱۰۰ ریال</strong> است. اگر سهم سقوط کند و به ۷٬۰۰۰ ریال برسد، شما حق دارید سهم را ۹٬۵۰۰ بفروشید و ۲٬۱۰۰ ریال سود خالص می‌برید. اگر سهم رشد کند، فقط همان ۴۰۰ ریال پرمیوم را از دست می‌دهید.</p>
+                                <div class="text-[11px] bg-white/60 dark:bg-slate-900/60 p-2 rounded-lg space-y-0.5">
+                                    <div>• <strong>حداکثر سود:</strong> بسیار زیاد (تا رسیدن قیمت سهم به صفر)</div>
+                                    <div>• <strong>حداکثر زیان:</strong> محدود به پرمیوم پرداختی (۴۰۰ ریال)</div>
+                                    <div>• <strong>وجه تضمین:</strong> نیاز ندارد</div>
+                                </div>
+                            </div>
+                            <div class="bg-white/90 dark:bg-slate-900/90 rounded-lg p-2 border border-sky-500/20">
+                                <svg class="w-full h-20" viewBox="0 0 240 80">
+                                    <line x1="15" y1="45" x2="225" y2="45" stroke="#64748b" stroke-dasharray="3,3" stroke-width="1"/>
+                                    <path d="M 35 12 L 125 62 L 220 62" fill="none" stroke="#0ea5e9" stroke-width="3" stroke-linecap="round"/>
+                                    <circle cx="95" cy="45" r="3.5" fill="#f59e0b"/>
+                                    <text x="52" y="32" fill="#0ea5e9" font-size="9" font-family="Vazirmatn" text-anchor="middle">سود با ریزش</text>
+                                    <text x="175" y="56" fill="#f43f5e" font-size="9" font-family="Vazirmatn" text-anchor="middle">زیان ثابت (پرمیوم)</text>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- 4. Short Put -->
+                        <div class="p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 flex flex-col justify-between space-y-2.5">
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <h5 class="font-extrabold text-amber-600 dark:text-amber-400 text-sm">۴. فروشنده پوت (Short Put)</h5>
+                                    <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[10px] font-bold">ریسک بالا در سقوط بازار</span>
+                                </div>
+                                <p class="text-xs leading-relaxed"><strong>دیدگاه معامله‌گر:</strong> صعودی ملایم یا خنثی (مطمئن است سهم کف حمایتی خود را از دست نمی‌دهد).</p>
+                                <p class="text-xs leading-relaxed"><strong>مثال عددی:</strong> شما اختیار فروش اعمال ۹٬۵۰۰ ریال را با پرمیوم ۴۰۰ ریال می‌فروشید و نقداً ۴۰۰ ریال می‌گیرید. اگر قیمت سهم بالای ۹٬۵۰۰ بماند، کل ۴۰۰ ریال سود شماست. اما اگر بحرانی رخ دهد و سهم به ۶٬۰۰۰ ریال سقوط کند، شما متعهدید سهم ۶٬۰۰۰ ریالی را ۹٬۵۰۰ بخرید و ۳٬۱۰۰ ریال ضرر خالص می‌دهید!</p>
+                                <div class="text-[11px] bg-white/60 dark:bg-slate-900/60 p-2 rounded-lg space-y-0.5">
+                                    <div>• <strong>حداکثر سود:</strong> محدود به پرمیوم دریافتی (۴۰۰ ریال)</div>
+                                    <div>• <strong>حداکثر زیان:</strong> سنگین (معادل قیمت اعمال منهای پرمیوم دریافتی)</div>
+                                    <div>• <strong>وجه تضمین:</strong> الزامی (بلوکه شدن پول در کارگزاری)</div>
+                                </div>
+                            </div>
+                            <div class="bg-white/90 dark:bg-slate-900/90 rounded-lg p-2 border border-amber-500/20">
+                                <svg class="w-full h-20" viewBox="0 0 240 80">
+                                    <line x1="15" y1="35" x2="225" y2="35" stroke="#64748b" stroke-dasharray="3,3" stroke-width="1"/>
+                                    <path d="M 35 68 L 125 18 L 220 18" fill="none" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
+                                    <circle cx="95" cy="35" r="3.5" fill="#10b981"/>
+                                    <text x="52" y="55" fill="#f43f5e" font-size="9" font-family="Vazirmatn" text-anchor="middle">زیان با سقوط سهم</text>
+                                    <text x="175" y="13" fill="#10b981" font-size="9" font-family="Vazirmatn" text-anchor="middle">سود محدود (پرمیوم)</text>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Risk Ranking Comparison Table -->
+                    <div class="p-4 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 space-y-2.5">
+                        <h5 class="font-bold text-rose-500 text-sm flex items-center gap-1.5">
+                            <i class="fa-solid fa-ranking-star"></i>
+                            رتبه‌بندی دقیق سطح ریسک از خطرناک‌ترین تا امن‌ترین موقعیت:
+                        </h5>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs text-right border-collapse">
+                                <thead>
+                                    <tr class="border-b border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300">
+                                        <th class="py-1.5 px-2">رتبه ریسک</th>
+                                        <th class="py-1.5 px-2">موقعیت معاملاتی</th>
+                                        <th class="py-1.5 px-2">حداکثر سود</th>
+                                        <th class="py-1.5 px-2">حداکثر زیان</th>
+                                        <th class="py-1.5 px-2">توصیه برای معامله‌گران</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+                                    <tr>
+                                        <td class="py-1.5 px-2 font-bold text-rose-500">۱ (بسیار خطرناک)</td>
+                                        <td class="py-1.5 px-2 font-bold">فروش کال بدون سهم (Naked Call)</td>
+                                        <td class="py-1.5 px-2">محدود (پرمیوم)</td>
+                                        <td class="py-1.5 px-2 text-rose-500 font-bold">نامحدود (+∞)</td>
+                                        <td class="py-1.5 px-2">هرگز بدون پوشش انجام ندهید!</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-1.5 px-2 font-bold text-amber-500">۲ (ریسک بالا)</td>
+                                        <td class="py-1.5 px-2 font-bold">فروش پوت (Short Put)</td>
+                                        <td class="py-1.5 px-2">محدود (پرمیوم)</td>
+                                        <td class="py-1.5 px-2 text-amber-500 font-bold">زیاد (تا صفر شدن سهم)</td>
+                                        <td class="py-1.5 px-2">فقط روی سهام بنیادی و ارزنده</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-1.5 px-2 font-bold text-blue-500">۳ (ریسک متعادل)</td>
+                                        <td class="py-1.5 px-2 font-bold">کاور کال (فروش کال + داشتن سهم)</td>
+                                        <td class="py-1.5 px-2">محدود و مشخص</td>
+                                        <td class="py-1.5 px-2">کمتر از نگهداری صرف سهم</td>
+                                        <td class="py-1.5 px-2">عالی برای سهامداران باسابقه</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-1.5 px-2 font-bold text-emerald-500">۴ (امن / کنترل‌شده)</td>
+                                        <td class="py-1.5 px-2 font-bold">خرید کال یا خرید پوت (Long)</td>
+                                        <td class="py-1.5 px-2 text-emerald-500 font-bold">نامحدود / بسیار زیاد</td>
+                                        <td class="py-1.5 px-2">محدود به پول اولیه (پرمیوم)</td>
+                                        <td class="py-1.5 px-2">بهترین نقطه شروع برای مبتدیان</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CHAPTER 3: Margin, Settlement & Practical Operations -->
+                <div id="tabMarginSettlement" class="guide-tab-content hidden space-y-4">
+                    <div class="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 space-y-2">
+                        <h4 class="font-extrabold text-amber-600 dark:text-amber-400 text-sm sm:text-base flex items-center gap-2">
+                            <i class="fa-solid fa-vault"></i>
+                            وجه تضمین (Margin) چیست و چرا فقط از فروشنده گرفته می‌شود؟
+                        </h4>
+                        <p class="text-xs leading-relaxed">وقتی شما یک قرارداد اختیار را <strong>می‌خرید</strong>، همان لحظه کل هزینه (پرمیوم) را پرداخت می‌کنید و دیگر هیچ بدهی یا تعهدی ندارید. اما وقتی قراردادی را <strong>می‌فروشید</strong>، در روز سررسید متعهد به تحویل سهم یا پول هستید. بورس برای اینکه مطمئن شود شما در روز سررسید زیر تعهد خود نمی‌زنید، بخشی از پول نقد یا سهام شما را به عنوان <strong>«وجه تضمین»</strong> در حساب کارگزاری مسدود می‌کند.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 rounded-xl bg-slate-100 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 space-y-2">
+                            <h5 class="font-bold text-indigo-500 text-sm">سازوکار محاسبه وجه تضمین در بورس ایران</h5>
+                            <ul class="space-y-2 text-xs leading-relaxed">
+                                <li><strong>۱. وجه تضمین اولیه (Initial Margin):</strong> مبلغی که در لحظه فروش قرارداد باید در حساب نقد شما آزاد باشد تا سفارش فروش ثبت شود (معمولاً بین ۲۰٪ تا ۳۰٪ ارزش کل قرارداد است).</li>
+                                <li><strong>۲. وجه تضمین نگهداری (Maintenance Margin):</strong> حداقل پولی که در طول دوره باید در حساب بماند.</li>
+                                <li><strong>۳. اخطار افزایش وجه تضمین (Call Margin):</strong> اگر قیمت سهم برخلاف پیش‌بینی فروشنده حرکت کند (مثلاً شما کال فروخته‌اید و سهم صف خرید می‌شود)، ضرر شما زیاد شده و وجه تضمین کم می‌آید. کارگزاری پیامک اخطار می‌دهد تا ظرف ۲۴ ساعت پول واریز کنید، وگرنه موقعیت شما را با قیمت بازار می‌بندد!</li>
+                                <li><strong>۴. معافیت کاور کال:</strong> اگر به اندازه قراردادهای کال فروخته‌شده، سهام پایه را در سبد خود داشته باشید، به جای پول نقد، خود سهام به عنوان تضمین قفل می‌شود و نیاز به پول نقد نیست.</li>
+                            </ul>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-slate-100 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 space-y-2">
+                            <h5 class="font-bold text-emerald-500 text-sm">آیا حتماً باید تا روز سررسید صبر کنیم؟ (بستن موقعیت)</h5>
+                            <p class="text-xs leading-relaxed"><strong>خیر!</strong> یکی از بزرگ‌ترین سوءتفاهم‌های تازه‌واردان این است که فکر می‌کنند تا روز سررسید در قرارداد گیر می‌افتند. قراردادهای اختیار معامله دقیقاً مثل سهام در طول ساعات بازار خرید و فروش می‌شوند:</p>
+                            <ul class="space-y-2 text-xs leading-relaxed">
+                                <li>• اگر قراردادی را <strong>خریده‌اید</strong> و قیمتش رشد کرده، هر لحظه که بخواهید دکمه <strong>فروش</strong> همان نماد را می‌زنید، سودتان را نقد می‌کنید و از قرارداد خارج می‌شوید.</li>
+                                <li>• اگر قراردادی را <strong>فروخته‌اید</strong> و قیمتش افت کرده (یا می‌خواهید جلوی ضرر را بگیرید)، هر لحظه دکمه <strong>خرید</strong> همان نماد را می‌زنید، تعهدتان صفر می‌شود و وجه تضمین شما بلافاصله آزاد می‌گردد (به این کار <strong>Offsetting</strong> می‌گویند).</li>
+                                <li>• <strong>تسویه در روز سررسید:</strong> در بورس ایران تسویه اکثر قراردادها به صورت <strong>تسویه نقدی (Cash Settlement)</strong> انجام می‌شود؛ یعنی مابه‌التفاوت قیمت اعمال و قیمت پایانی سهم به صورت نقدی بین خریدار و فروشنده جابه‌جا می‌شود و نیازی به دردسر تحویل فیزیکی سهام نیست.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CHAPTER 4: Pricing Factors, Moneyness & Greeks -->
+                <div id="tabTermsGreeks" class="guide-tab-content hidden space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
+                            <h5 class="font-bold text-indigo-500 mb-1">۱. قیمت اعمال (Strike Price)</h5>
+                            <p class="text-xs">قیمتی که در شناسنامه قرارداد ثبت شده و ملاک تسویه در سررسید است. مثلاً در نماد <code>ضخود1024</code>، عدد انتهایی یا شناسنامه نماد نشان‌دهنده قیمت اعمال است.</p>
+                        </div>
+                        <div class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
+                            <h5 class="font-bold text-indigo-500 mb-1">۲. پرمیوم = ارزش ذاتی + ارزش زمانی</h5>
+                            <p class="text-xs"><strong>ارزش ذاتی:</strong> سودی که همین الان از اعمال قرارداد به دست می‌آید. <strong>ارزش زمانی:</strong> پولی که بازار بابت «فرصت باقی‌مانده تا سررسید» می‌پردازد و هر روز با نزدیک شدن به سررسید آب می‌شود!</p>
+                        </div>
+                        <div class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
+                            <h5 class="font-bold text-indigo-500 mb-1">۳. ضریب قرارداد (Contract Size)</h5>
+                            <p class="text-xs">در بورس ایران هر ۱ قرارداد اختیار معمولاً معادل <strong>۱٬۰۰۰ سهم</strong> (و در برخی صندوق‌های اهرمی ۱۰ یا ۱۰۰ واحد) است. سود و زیان همیشه در ضریب ضرب می‌شود.</p>
+                        </div>
+                        <div class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
+                            <h5 class="font-bold text-amber-500 mb-1">۴. فرمول نقطه سر به سر (Breakeven)</h5>
+                            <p class="text-xs">در اختیار خرید (Call): <code>قیمت اعمال + پرمیوم</code><br>در اختیار فروش (Put): <code>قیمت اعمال - پرمیوم</code><br>در این نقطه برآیند سود و زیان دقیقاً صفر است.</p>
+                        </div>
+                    </div>
+
+                    <!-- Moneyness Visual Guide -->
+                    <div class="p-3.5 rounded-xl border border-indigo-500/20 bg-indigo-500/5">
+                        <h5 class="font-bold text-indigo-500 mb-2">۵. وضعیت قرارداد نسبت به قیمت سهم (Moneyness)</h5>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-center text-xs">
+                            <div class="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                                <div class="font-bold text-emerald-500 mb-1">در سود (In The Money - ITM)</div>
+                                <p class="text-[11px]">قرارداد دارای ارزش ذاتی مثبت است.<br>در کال: <code>قیمت سهم > قیمت اعمال</code><br>در پوت: <code>قیمت سهم < قیمت اعمال</code></p>
+                            </div>
+                            <div class="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                                <div class="font-bold text-amber-500 mb-1">بی‌تفاوت (At The Money - ATM)</div>
+                                <p class="text-[11px]">قیمت سهم در بازار دقیقاً برابر یا بسیار نزدیک به قیمت اعمال قرارداد است (دارای بیشترین ارزش زمانی و نقدشوندگی).</p>
+                            </div>
+                            <div class="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20">
+                                <div class="font-bold text-rose-500 mb-1">در زیان (Out of The Money - OTM)</div>
+                                <p class="text-[11px]">ارزش ذاتی صفر است و کل قیمت تابلو فقط ارزش زمانی است. ارزان‌ترین قراردادها با بیشترین اهرم اما احتمال موفقیت کمتر.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Academic Financial Management Section: Black-Scholes & Greeks -->
+                    <div class="p-4 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-2.5">
+                        <h5 class="font-extrabold text-blue-600 dark:text-blue-400 text-sm flex items-center gap-1.5">
+                            <i class="fa-solid fa-superscript"></i>
+                            بخش تخصصی مدیریت مالی: مدل بلک-شولز و حساسیت‌های قیمت (Greeks)
+                        </h5>
+                        <p class="text-xs leading-relaxed">در تئوری مالی مدرن (مدل Black-Scholes-Merton)، قیمت منصفانه اختیار معامله تابعی از ۵ پارامتر کلیدی است: قیمت دارایی پایه ($S$)، قیمت اعمال ($K$)، زمان باقی‌مانده تا سررسید ($T$)، نرخ بازده بدون ریسک ($r$) و نوسان‌پذیری ضمنی ($\sigma$ یا IV). میزان حساسیت قیمت آپشن به هر یک از این متغیرها با حروف یونانی اندازه‌گیری می‌شود:</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-[11px]">
+                            <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                                <strong class="text-emerald-500 block mb-0.5">دلتا (Delta - $\Delta$):</strong>
+                                میزان تغییر قیمت اختیار به ازای ۱ واحد تغییر در قیمت سهم. دلتای کال بین ۰ تا +۱ و دلتای پوت بین -۱ تا ۰ است. (همچنین معیاری تقریبی از احتمال در سود شدن قرارداد در سررسید است).
+                            </div>
+                            <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                                <strong class="text-blue-500 block mb-0.5">گاما (Gamma - $\Gamma$):</strong>
+                                نرخ تغییرات دلتا نسبت به قیمت سهم (مشتق دوم). گاما در قراردادهای ATM نزدیک به سررسید به اوج می‌رسد و شتاب سودآوری را تعیین می‌کند.
+                            </div>
+                            <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                                <strong class="text-rose-500 block mb-0.5">تتا (Theta - $\Theta$):</strong>
+                                فرسایش زمانی (Time Decay)؛ میزان افت روزانه قیمت آپشن با گذشت یک روز. تتا دشمن خریداران و دوست صمیمی فروشندگان اختیار است.
+                            </div>
+                            <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                                <strong class="text-purple-500 block mb-0.5">وگا (Vega - $\nu$):</strong>
+                                حساسیت قیمت قرارداد به تغییر نوسان‌پذیری ضمنی (IV). با افزایش هیجان و تلاطم بازار، وگا باعث افزایش هم‌زمان قیمت کال و پوت می‌شود.
+                            </div>
+                            <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                                <strong class="text-amber-500 block mb-0.5">رو (Rho - $\rho$):</strong>
+                                حساسیت قیمت اختیار نسبت به تغییر نرخ بهره بدون ریسک (اوراق اخزا/سود بانکی). افزایش نرخ بهره باعث افزایش ارزش کال و کاهش ارزش پوت می‌شود.
+                            </div>
+                            <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                                <strong class="text-indigo-500 block mb-0.5">رابطه برابری پوت-کال (Put-Call Parity):</strong>
+                                در بازارهای کارا رابطه‌ی $C + K e^{-rT} = P + S$ برقرار است؛ هرگونه انحراف معنادار از این تعادل، فرصت آربیتراژ بدون ریسک ایجاد می‌کند.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CHAPTER 5: Combined Strategies -->
+                <div id="tabStrategies" class="guide-tab-content hidden space-y-3.5">
+                    <div class="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs">
+                        قدرت واقعی بازار اختیار در <strong>ترکیب قراردادها</strong> است؛ جایی که می‌توانید سقف زیان را قفل کنید و متناسب با هر شرایط بازار (صعودی، نزولی، رنج یا پرنوسان) استراتژی بسازید:
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div class="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <h5 class="font-bold text-emerald-600 dark:text-emerald-400">۱. کاور کال (Covered Call) — درآمد ماهانه از سهام</h5>
+                                <svg class="w-10 h-5" viewBox="0 0 40 20"><path d="M2 18 L22 5 L38 5" fill="none" stroke="#10b981" stroke-width="2.5"/></svg>
+                            </div>
+                            <p class="text-xs leading-relaxed"><strong>ترکیب:</strong> خرید سهام پایه + فروش اختیار کال در قیمت بالاتر.<br><strong>کاربرد:</strong> بهترین استراتژی برای سهامداران باسابقه در بازارهای رنج یا کم‌رشد؛ علاوه بر سود سهام، پرمیوم فروش کال را هم نقداً دریافت می‌کنید و میانگین قیمت خریدتان پایین می‌آید.</p>
+                        </div>
+
+                        <div class="p-3.5 rounded-xl bg-sky-500/10 border border-sky-500/20">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <h5 class="font-bold text-sky-600 dark:text-sky-400">۲. پوت حمایتی (Protective Put) — بیمه سبد سهام</h5>
+                                <svg class="w-10 h-5" viewBox="0 0 40 20"><path d="M2 15 L18 15 L38 3" fill="none" stroke="#0ea5e9" stroke-width="2.5"/></svg>
+                            </div>
+                            <p class="text-xs leading-relaxed"><strong>ترکیب:</strong> داشتن سهام پایه + خرید اختیار پوت.<br><strong>کاربرد:</strong> بیمه کردن پرتفوی سهام در برابر اخبار منفی و سقوط بازار، در حالی که سقف سود شما در صورت رشد سهم همچنان کاملاً باز است.</p>
+                        </div>
+
+                        <div class="p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <h5 class="font-bold text-blue-600 dark:text-blue-400">۳. اسپرد صعودی (Bull Call Spread)</h5>
+                                <svg class="w-10 h-5" viewBox="0 0 40 20"><path d="M2 16 L13 16 L27 4 L38 4" fill="none" stroke="#3b82f6" stroke-width="2.5"/></svg>
+                            </div>
+                            <p class="text-xs leading-relaxed"><strong>ترکیب:</strong> خرید کال اعمال پایین + فروش کال اعمال بالا.<br><strong>کاربرد:</strong> کاهش هزینه خرید کال، پایین آوردن نقطه سر به سر و خنثی کردن بخشی از فرسایش زمانی در بازارهای صعودی ملایم.</p>
+                        </div>
+
+                        <div class="p-3.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <h5 class="font-bold text-indigo-600 dark:text-indigo-400">۴. اسپرد نزولی (Bear Put Spread)</h5>
+                                <svg class="w-10 h-5" viewBox="0 0 40 20"><path d="M2 4 L13 4 L27 16 L38 16" fill="none" stroke="#6366f1" stroke-width="2.5"/></svg>
+                            </div>
+                            <p class="text-xs leading-relaxed"><strong>ترکیب:</strong> خرید پوت اعمال بالا + فروش پوت اعمال پایین.<br><strong>کاربرد:</strong> کسب سود کم‌هزینه از افت قیمت بازار بدون نیاز به وجه تضمین سنگین و با ریسک کاملاً محدود.</p>
+                        </div>
+
+                        <div class="p-3.5 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <h5 class="font-bold text-purple-600 dark:text-purple-400">۵. استرادل (Long Straddle) — شکار نوسان</h5>
+                                <svg class="w-10 h-5" viewBox="0 0 40 20"><path d="M2 3 L20 17 L38 3" fill="none" stroke="#a855f7" stroke-width="2.5"/></svg>
+                            </div>
+                            <p class="text-xs leading-relaxed"><strong>ترکیب:</strong> خرید هم‌زمان کال و پوت با یک قیمت اعمال.<br><strong>کاربرد:</strong> نوسان‌گیری از حرکت‌های انفجاری بازار (مثل قبل از مجمع مهم، تغییر نرخ ارز یا اخبار سیاسی) بدون نیاز به پیش‌بینی جهت بازار.</p>
+                        </div>
+
+                        <div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <h5 class="font-bold text-amber-600 dark:text-amber-400">۶. آیرون کاندور و پروانه‌ای (بازار خنثی)</h5>
+                                <svg class="w-10 h-5" viewBox="0 0 40 20"><path d="M2 17 L8 17 L13 5 L27 5 L32 17 L38 17" fill="none" stroke="#f59e0b" stroke-width="2.5"/></svg>
+                            </div>
+                            <p class="text-xs leading-relaxed"><strong>ترکیب:</strong> استراتژی‌های ۴ پایه‌ای ترکیب اسپرد صعودی و نزولی.<br><strong>کاربرد:</strong> کسب سود از درجا زدن قیمت سهم درون یک کانال مشخص با حداکثر زیان کاملاً کنترل‌شده.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CHAPTER 6: Practical App Guide & Risk Management -->
+                <div id="tabAppUsage" class="guide-tab-content hidden space-y-4">
+                    <div class="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 space-y-2.5">
+                        <h4 class="font-extrabold text-blue-600 dark:text-blue-400 text-sm">راهنمای گام‌به‌گام استفاده از این ماشین‌حساب</h4>
+                        <ol class="list-decimal list-inside space-y-2 text-xs leading-relaxed">
+                            <li><strong>تنظیم دارایی پایه:</strong> قیمت فعلی سهم را وارد کنید. اگر فقط قصد معامله روی قرارداد اختیار را دارید (بدون خرید یا فروش خود سهم)، تیک گزینه <em>«شامل سهام پایه در محاسبه»</em> را بردارید تا ماشین‌حساب فقط سود و زیان اختیارها را محاسبه کند.</li>
+                            <li><strong>افزودن قراردادها:</strong> از بین ۴ دکمه <em>خرید کال، فروش کال، خرید پوت و فروش پوت</em>، موقعیت‌های دلخواه خود را اضافه کنید (می‌توانید فقط یک قرارداد یا ترکیبی از چندین قرارداد بسازید و با تیک کنار هر قرارداد، آن را موقتاً فعال یا غیرفعال کنید).</li>
+                            <li><strong>تحلیل سناریو با بافر و قیمت هدف:</strong> اسلایدر شبیه‌ساز را حرکت دهید، یا با دکمه‌های <strong>-۱۰٪ تا +۱۰٪</strong> تغییر قیمت سهم را شبیه‌سازی کنید و یا مستقیماً قیمت هدف خود را تایپ نمایید.</li>
+                            <li><strong>بررسی نقطه سر به سر و نسبت ریسک به بازده:</strong> قبل از ثبت سفارش در کارگزاری، حتماً مطمئن شوید فاصله قیمت فعلی تا نقطه سر به سر منطقی است و حداکثر زیان با مدیریت سرمایه شما هم‌خوانی دارد.</li>
+                        </ol>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 space-y-2">
+                        <h5 class="font-extrabold text-emerald-600 dark:text-emerald-400 text-sm flex items-center gap-1.5">
+                            <i class="fa-solid fa-shield-heart"></i>
+                            اصول طلایی مدیریت ریسک و سرمایه در بازار اختیار معامله:
+                        </h5>
+                        <ul class="list-disc list-inside space-y-1.5 text-xs leading-relaxed">
+                            <li><strong>قانون تخصیص سرمایه:</strong> برای استراتژی‌های خرید اختیار (Long)، هرگز بیش از ۵٪ تا ۱۰٪ کل پرتفوی خود را وارد یک قرارداد نکنید، زیرا در صورت خلاف جهت بودن بازار کل پرمیوم صفر می‌شود.</li>
+                            <li><strong>اجتناب از تله هفته آخر:</strong> در ۵ روز کاری منتهی به سررسید، سرعت افت ارزش زمانی (تتا) به حداکثر می‌رسد؛ اگر معامله‌گر خریدار هستید، پیش از هفته آخر درباره خروج یا تمدید موقعیت تصمیم بگیرید.</li>
+                            <li><strong>توجه به نقدشوندگی و شکاف قیمتی (Bid-Ask Spread):</strong> تنها در نمادهایی معامله کنید که بازارگردان فعال و حجم معاملات روزانه مناسبی دارند تا در زمان خروج مجبور به فروش زیر قیمت منصفانه نشوید.</li>
+                            <li><strong>پوشش ریسک در فروش اختیار:</strong> در فروش اختیار (به‌ویژه فروش کال)، همیشه پوشش سهام پایه (Covered Call) یا قرارداد محافظ (Credit Spread) داشته باشید تا در معرض زیان نامحدود قرار نگیرید.</li>
+                            <li><strong>لحاظ کردن کارمزد و مالیات:</strong> با فعال کردن تیک «کسر کارمزد معاملات» در ماشین‌حساب، اثر هزینه‌های معاملاتی و تسویه را در نقطه سر به سر واقعی خود ببینید.</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer with Next/Previous Chapter Navigation -->
+            <div class="p-3.5 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 shrink-0 bg-slate-50/70 dark:bg-slate-900">
+                <div class="flex items-center gap-2">
+                    <button onclick="navigateGuideChapter(-1)" id="prevChapterBtn" class="px-3 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-xs font-bold flex items-center gap-1.5 transition disabled:opacity-40">
+                        <i class="fa-solid fa-arrow-right"></i>
+                        <span>فصل قبلی</span>
+                    </button>
+                    <button onclick="navigateGuideChapter(1)" id="nextChapterBtn" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 transition disabled:opacity-40">
+                        <span>فصل بعدی</span>
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                </div>
+                <button onclick="closeModal('guideModal')" class="px-5 py-1.5 rounded-xl bg-blue-600 text-white font-bold text-xs hover:bg-blue-500 transition">بستن آموزش و بازگشت به تحلیل</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PWA Install Help Modal -->
+    <div id="pwaModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-5 shadow-2xl">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="font-bold text-base flex items-center gap-2">
+                    <i class="fa-solid fa-mobile-screen-button text-blue-500"></i>
+                    نصب برنامه روی گوشی و لپ‌تاپ
+                </h3>
+                <button onclick="closeModal('pwaModal')" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="space-y-3 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                <p><strong>در لپ‌تاپ (Chrome / Edge):</strong> در منوی سه‌نقطه بالای مرورگر، وارد بخش <strong>Save and share</strong> شوید و گزینه <strong>Create shortcut</strong> (با تیک <em>Open as window</em>) یا <strong>Install app</strong> را بزنید.</p>
+                <p><strong>در گوشی اندروید (Chrome):</strong> منوی سه‌نقطه بالا را لمس کرده و <strong>Add to Home screen / Install app</strong> را انتخاب کنید.</p>
+                <p><strong>در آیفون (Safari):</strong> دکمه <strong>Share</strong> در پایین صفحه را بزنید و گزینه <strong>Add to Home Screen</strong> را انتخاب کنید.</p>
+            </div>
+            <button onclick="closeModal('pwaModal')" class="w-full mt-4 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-xs sm:text-sm">بستن راهنما</button>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 hidden px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs sm:text-sm font-bold shadow-xl transition-all"></div>
+
+    <script>
+        // ==========================================
+        // 1. COPYRIGHT & LICENSE CONFIGURATION
+        // ==========================================
+        // Set to false for Google Play / Cafe Bazaar / Myket publishing.
+        // Set to true if selling standalone HTML file directly with serial keys.
+        const REQUIRE_LICENSE_KEY = false;
+        const VALID_LICENSE_KEYS = [
+            'OPT-2026-PRO1',
+            'OPT-2026-VIP2',
+            'OPT-GOLD-8899',
+            'ADMIN-MASTER-2026'
+        ];
+
+        // Basic Copy-Protection (Right-click & DevTools shortcuts)
+        document.addEventListener('contextmenu', e => {
+            if (e.target.tagName !== 'INPUT') e.preventDefault();
+        });
+        document.addEventListener('keydown', e => {
+            if (
+                e.key === 'F12' ||
+                (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())) ||
+                (e.ctrlKey && ['U', 'S'].includes(e.key.toUpperCase()))
+            ) {
+                e.preventDefault();
+            }
+        });
+
+        function checkLicenseState() {
+            if (!REQUIRE_LICENSE_KEY) return;
+            const savedKey = localStorage.getItem('opt_calc_license');
+            if (!savedKey || !VALID_LICENSE_KEYS.includes(savedKey)) {
+                document.getElementById('licenseOverlay').classList.remove('hidden');
+            }
+        }
+
+        function verifyLicense() {
+            const input = document.getElementById('licenseInput').value.trim().toUpperCase();
+            if (VALID_LICENSE_KEYS.includes(input)) {
+                localStorage.setItem('opt_calc_license', input);
+                document.getElementById('licenseOverlay').classList.add('hidden');
+                showToast('لایسنس با موفقیت فعال شد!', 'success');
+            } else {
+                document.getElementById('licenseError').classList.remove('hidden');
+            }
+        }
+
+        // ==========================================
+        // 2. APPLICATION STATE & INITIALIZATION
+        // ==========================================
+        let state = {
+            spotPrice: 10000,
+            targetPrice: 10000,
+            includeUnderlying: true,
+            underlyingQty: 1000,
+            includeFees: false,
+            feeRate: 0.2,
+            legs: [
+                {
+                    id: 1,
+                    type: 'call',   // 'call' or 'put'
+                    action: 'sell', // 'buy' or 'sell'
+                    strike: 10500,
+                    premium: 650,
+                    contracts: 1,
+                    multiplier: 1000,
+                    active: true
+                }
+            ]
+        };
+
+        let payoffChartInstance = null;
+
+        function loadSavedState() {
+            try {
+                const raw = localStorage.getItem('options_payoff_state_v3');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    state = { ...state, ...parsed };
+                }
+            } catch (e) {
+                console.warn('Could not load saved state:', e);
+            }
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem('options_payoff_state_v3', JSON.stringify(state));
+            } catch (e) {}
+        }
+
+        function formatNum(num) {
+            if (!isFinite(num)) return num > 0 ? '+∞' : '-∞';
+            const rounded = Math.round(num);
+            return rounded.toLocaleString('en-US');
+        }
+
+        function formatSignedNum(num) {
+            if (!isFinite(num)) return num > 0 ? '+∞' : '-∞';
+            const rounded = Math.round(num);
+            const prefix = rounded > 0 ? '+' : '';
+            return prefix + rounded.toLocaleString('en-US');
+        }
+
+        // ==========================================
+        // 3. THEME MANAGEMENT (DARK / LIGHT)
+        // ==========================================
+        function initTheme() {
+            const savedTheme = localStorage.getItem('opt_calc_theme') || 'dark';
+            const htmlEl = document.documentElement;
+            const iconEl = document.getElementById('themeIcon');
+            if (savedTheme === 'dark') {
+                htmlEl.classList.add('dark');
+                if (iconEl) iconEl.className = 'fa-solid fa-sun';
+            } else {
+                htmlEl.classList.remove('dark');
+                if (iconEl) iconEl.className = 'fa-solid fa-moon text-slate-700';
+            }
+        }
+
+        function toggleTheme() {
+            const htmlEl = document.documentElement;
+            const iconEl = document.getElementById('themeIcon');
+            const isDark = htmlEl.classList.toggle('dark');
+            localStorage.setItem('opt_calc_theme', isDark ? 'dark' : 'light');
+            if (iconEl) {
+                iconEl.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon text-slate-700';
+            }
+            updateCalculations();
+        }
+
+        // ==========================================
+        // 4. OPTION LEGS & UNDERLYING HANDLERS
+        // ==========================================
+        function syncInputsFromState() {
+            document.getElementById('spotPrice').value = state.spotPrice;
+            document.getElementById('includeUnderlying').checked = state.includeUnderlying;
+            document.getElementById('underlyingQty').value = state.underlyingQty;
+            document.getElementById('includeFees').checked = state.includeFees;
+            document.getElementById('feeRate').value = state.feeRate;
+            document.getElementById('underlyingQtyGroup').style.opacity = state.includeUnderlying ? '1' : '0.45';
+            updateSliderBounds();
+        }
+
+        function handleUnderlyingChange() {
+            state.includeUnderlying = document.getElementById('includeUnderlying').checked;
+            state.underlyingQty = parseFloat(document.getElementById('underlyingQty').value) || 0;
+            document.getElementById('underlyingQtyGroup').style.opacity = state.includeUnderlying ? '1' : '0.45';
+            saveState();
+            updateCalculations();
+        }
+
+        function onSpotPriceInput() {
+            const val = parseFloat(document.getElementById('spotPrice').value);
+            if (isNaN(val) || val <= 0) return;
+            state.spotPrice = val;
+            state.targetPrice = val;
+            updateSliderBounds();
+            saveState();
+            updateCalculations();
+        }
+
+        function updateSliderBounds() {
+            const spot = state.spotPrice || 10000;
+            const minP = Math.max(1, Math.round(spot * 0.5));
+            const maxP = Math.round(spot * 1.5);
+            const step = Math.max(1, Math.round(spot * 0.001));
+
+            const slider = document.getElementById('priceSlider');
+            slider.min = minP;
+            slider.max = maxP;
+            slider.step = step;
+            slider.value = Math.min(maxP, Math.max(minP, state.targetPrice));
+
+            document.getElementById('sliderMinLabel').textContent = formatNum(minP);
+            document.getElementById('sliderSpotLabel').textContent = 'قیمت فعلی: ' + formatNum(spot);
+            document.getElementById('sliderMaxLabel').textContent = formatNum(maxP);
+            document.getElementById('targetPriceInput').value = Math.round(state.targetPrice);
+            updateTargetPctBadge();
+        }
+
+        function onSliderChange(val) {
+            state.targetPrice = parseFloat(val) || state.spotPrice;
+            document.getElementById('targetPriceInput').value = Math.round(state.targetPrice);
+            updateTargetPctBadge();
+            updateCalculations();
+        }
+
+        function onManualTargetInput(val) {
+            const num = parseFloat(val);
+            if (isNaN(num) || num < 0) return;
+            state.targetPrice = num;
+            const slider = document.getElementById('priceSlider');
+            if (num < parseFloat(slider.min)) slider.min = Math.max(0, Math.floor(num * 0.8));
+            if (num > parseFloat(slider.max)) slider.max = Math.ceil(num * 1.2);
+            slider.value = num;
+            updateTargetPctBadge();
+            updateCalculations();
+        }
+
+        function adjustTargetByPercent(pct) {
+            const delta = state.spotPrice * (pct / 100);
+            state.targetPrice = Math.max(0, Math.round(state.targetPrice + delta));
+            const slider = document.getElementById('priceSlider');
+            if (state.targetPrice < parseFloat(slider.min)) slider.min = Math.max(0, Math.floor(state.targetPrice * 0.8));
+            if (state.targetPrice > parseFloat(slider.max)) slider.max = Math.ceil(state.targetPrice * 1.2);
+            slider.value = state.targetPrice;
+            document.getElementById('targetPriceInput').value = state.targetPrice;
+            updateTargetPctBadge();
+            updateCalculations();
+        }
+
+        function resetTargetToSpot() {
+            state.targetPrice = state.spotPrice;
+            updateSliderBounds();
+            updateCalculations();
+        }
+
+        function updateTargetPctBadge() {
+            const pct = state.spotPrice > 0 ? ((state.targetPrice - state.spotPrice) / state.spotPrice) * 100 : 0;
+            const badge = document.getElementById('targetPctBadge');
+            badge.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
+            badge.className = 'px-2.5 py-1 rounded-lg text-xs font-bold dir-ltr ' +
+                (pct > 0 ? 'bg-emerald-500/15 text-emerald-500' : pct < 0 ? 'bg-rose-500/15 text-rose-500' : 'bg-slate-100 dark:bg-slate-800 text-slate-500');
+        }
+
+        function addOptionLeg(type, action) {
+            const defaultStrike = Math.round(state.spotPrice * (type === 'call' ? 1.05 : 0.95));
+            const defaultPremium = Math.max(10, Math.round(state.spotPrice * 0.05));
+            state.legs.push({
+                id: Date.now() + Math.random(),
+                type,
+                action,
+                strike: defaultStrike,
+                premium: defaultPremium,
+                contracts: 1,
+                multiplier: 1000,
+                active: true
+            });
+            saveState();
+            renderLegs();
+            updateCalculations();
+        }
+
+        function removeLeg(id) {
+            state.legs = state.legs.filter(l => l.id !== id);
+            saveState();
+            renderLegs();
+            updateCalculations();
+        }
+
+        function toggleLegActive(id) {
+            const leg = state.legs.find(l => l.id === id);
+            if (leg) {
+                leg.active = !leg.active;
+                saveState();
+                renderLegs();
+                updateCalculations();
+            }
+        }
+
+        function updateLegField(id, field, value) {
+            const leg = state.legs.find(l => l.id === id);
+            if (!leg) return;
+            if (field === 'type' || field === 'action') {
+                leg[field] = value;
+            } else {
+                leg[field] = parseFloat(value) || 0;
+            }
+            saveState();
+            if (field === 'type' || field === 'action') renderLegs();
+            updateCalculations();
+        }
+
+        function renderLegs() {
+            const container = document.getElementById('legsContainer');
+            const activeCount = state.legs.filter(l => l.active).length;
+            document.getElementById('activeLegsCount').textContent = `${activeCount} موقعیت فعال`;
+
+            if (state.legs.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-5 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-400">
+                        هنوز قرارداد اختیاری اضافه نشده است. از دکمه‌های بالا استفاده کنید.
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = state.legs.map(leg => {
+                const isBuy = leg.action === 'buy';
+                const isCall = leg.type === 'call';
+                const badgeColor = isBuy
+                    ? (isCall ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-sky-500/15 text-sky-600 dark:text-sky-400')
+                    : (isCall ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400' : 'bg-amber-500/15 text-amber-600 dark:text-amber-400');
+
+                const title = `${isBuy ? 'خرید' : 'فروش'} ${isCall ? 'کال (Call)' : 'پوت (Put)'}`;
+
+                return `
+                <div class="p-2.5 rounded-xl border ${leg.active ? 'border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/50' : 'border-slate-200/50 dark:border-slate-800/50 opacity-55'} transition">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <div class="flex items-center gap-1.5">
+                            <input type="checkbox" ${leg.active ? 'checked' : ''} onchange="toggleLegActive(${leg.id})" class="w-3.5 h-3.5 rounded text-blue-600 cursor-pointer">
+                            <span class="px-2 py-0.5 rounded-md text-[11px] font-bold ${badgeColor}">${title}</span>
+                        </div>
+                        <button onclick="removeLeg(${leg.id})" title="حذف قرارداد" class="text-slate-400 hover:text-rose-500 transition px-1">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-4 gap-1.5 text-xs">
+                        <div>
+                            <label class="block text-[9px] text-slate-500 dark:text-slate-400 mb-0.5">قیمت اعمال</label>
+                            <input type="number" value="${leg.strike}" step="10" oninput="updateLegField(${leg.id}, 'strike', this.value)" class="w-full p-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-bold text-center text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-[9px] text-slate-500 dark:text-slate-400 mb-0.5">پرمیوم</label>
+                            <input type="number" value="${leg.premium}" step="5" oninput="updateLegField(${leg.id}, 'premium', this.value)" class="w-full p-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-bold text-center text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-[9px] text-slate-500 dark:text-slate-400 mb-0.5">تعداد</label>
+                            <input type="number" value="${leg.contracts}" min="1" step="1" oninput="updateLegField(${leg.id}, 'contracts', this.value)" class="w-full p-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-bold text-center text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-[9px] text-slate-500 dark:text-slate-400 mb-0.5">ضریب</label>
+                            <input type="number" value="${leg.multiplier}" min="1" step="100" oninput="updateLegField(${leg.id}, 'multiplier', this.value)" class="w-full p-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-bold text-center text-xs">
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        // ==========================================
+        // 5. PRESETS & RESET FUNCTIONS
+        // ==========================================
+        function applyPreset(name) {
+            const spot = state.spotPrice || 10000;
+            const step = Math.max(10, Math.round(spot * 0.05));
+
+            if (name === 'singleCall') {
+                state.includeUnderlying = false;
+                state.legs = [
+                    { id: Date.now() + 1, type: 'call', action: 'buy', strike: spot, premium: Math.round(spot * 0.05), contracts: 1, multiplier: 1000, active: true }
+                ];
+            } else if (name === 'singlePut') {
+                state.includeUnderlying = false;
+                state.legs = [
+                    { id: Date.now() + 1, type: 'put', action: 'buy', strike: spot, premium: Math.round(spot * 0.05), contracts: 1, multiplier: 1000, active: true }
+                ];
+            } else if (name === 'coveredCall') {
+                state.includeUnderlying = true;
+                state.underlyingQty = 1000;
+                state.legs = [
+                    { id: Date.now() + 1, type: 'call', action: 'sell', strike: spot + step, premium: Math.round(spot * 0.045), contracts: 1, multiplier: 1000, active: true }
+                ];
+            } else if (name === 'protectivePut') {
+                state.includeUnderlying = true;
+                state.underlyingQty = 1000;
+                state.legs = [
+                    { id: Date.now() + 1, type: 'put', action: 'buy', strike: spot - step, premium: Math.round(spot * 0.035), contracts: 1, multiplier: 1000, active: true }
+                ];
+            } else if (name === 'bullCallSpread') {
+                state.includeUnderlying = false;
+                state.legs = [
+                    { id: Date.now() + 1, type: 'call', action: 'buy', strike: spot, premium: Math.round(spot * 0.06), contracts: 1, multiplier: 1000, active: true },
+                    { id: Date.now() + 2, type: 'call', action: 'sell', strike: spot + step * 2, premium: Math.round(spot * 0.025), contracts: 1, multiplier: 1000, active: true }
+                ];
+            } else if (name === 'bearPutSpread') {
+                state.includeUnderlying = false;
+                state.legs = [
+                    { id: Date.now() + 1, type: 'put', action: 'buy', strike: spot, premium: Math.round(spot * 0.06), contracts: 1, multiplier: 1000, active: true },
+                    { id: Date.now() + 2, type: 'put', action: 'sell', strike: spot - step * 2, premium: Math.round(spot * 0.025), contracts: 1, multiplier: 1000, active: true }
+                ];
+            } else if (name === 'straddle') {
+                state.includeUnderlying = false;
+                state.legs = [
+                    { id: Date.now() + 1, type: 'call', action: 'buy', strike: spot, premium: Math.round(spot * 0.045), contracts: 1, multiplier: 1000, active: true },
+                    { id: Date.now() + 2, type: 'put', action: 'buy', strike: spot, premium: Math.round(spot * 0.045), contracts: 1, multiplier: 1000, active: true }
+                ];
+            } else if (name === 'ironCondor') {
+                state.includeUnderlying = false;
+                state.legs = [
+                    { id: Date.now() + 1, type: 'put', action: 'buy', strike: spot - step * 2, premium: Math.round(spot * 0.015), contracts: 1, multiplier: 1000, active: true },
+                    { id: Date.now() + 2, type: 'put', action: 'sell', strike: spot - step, premium: Math.round(spot * 0.035), contracts: 1, multiplier: 1000, active: true },
+                    { id: Date.now() + 3, type: 'call', action: 'sell', strike: spot + step, premium: Math.round(spot * 0.035), contracts: 1, multiplier: 1000, active: true },
+                    { id: Date.now() + 4, type: 'call', action: 'buy', strike: spot + step * 2, premium: Math.round(spot * 0.015), contracts: 1, multiplier: 1000, active: true }
+                ];
+            } else if (name === 'butterfly') {
+                state.includeUnderlying = false;
+                state.legs = [
+                    { id: Date.now() + 1, type: 'call', action: 'buy', strike: spot - step, premium: Math.round(spot * 0.075), contracts: 1, multiplier: 1000, active: true },
+                    { id: Date.now() + 2, type: 'call', action: 'sell', strike: spot, premium: Math.round(spot * 0.045), contracts: 2, multiplier: 1000, active: true },
+                    { id: Date.now() + 3, type: 'call', action: 'buy', strike: spot + step, premium: Math.round(spot * 0.022), contracts: 1, multiplier: 1000, active: true }
+                ];
+            }
+
+            state.targetPrice = spot;
+            saveState();
+            syncInputsFromState();
+            renderLegs();
+            updateCalculations();
+            showToast('استراتژی انتخاب‌شده بارگذاری شد');
+        }
+
+        function resetAll() {
+            state.includeUnderlying = false;
+            state.legs = [];
+            state.targetPrice = state.spotPrice;
+            saveState();
+            syncInputsFromState();
+            renderLegs();
+            updateCalculations();
+            showToast('تمامی موقعیت‌ها پاک شدند');
+        }
+
+        // ==========================================
+        // 6. PAYOFF MATH ENGINE, BREAKDOWN & CHART
+        // ==========================================
+        function roundRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+        }
+
+        function calculateTotalFees() {
+            if (!state.includeFees) return 0;
+            const rate = (parseFloat(document.getElementById('feeRate').value) || 0) / 100;
+            let totalTurnover = 0;
+
+            if (state.includeUnderlying && state.underlyingQty !== 0) {
+                totalTurnover += Math.abs(state.underlyingQty) * state.spotPrice;
+            }
+            state.legs.forEach(leg => {
+                if (leg.active) {
+                    totalTurnover += leg.premium * leg.contracts * leg.multiplier;
+                }
+            });
+            return totalTurnover * rate;
+        }
+
+        function evaluatePayoffAtPrice(price) {
+            let total = 0;
+            if (state.includeUnderlying && state.underlyingQty !== 0) {
+                total += (price - state.spotPrice) * state.underlyingQty;
+            }
+            state.legs.forEach(leg => {
+                if (!leg.active) return;
+                const intrinsic = leg.type === 'call'
+                    ? Math.max(0, price - leg.strike)
+                    : Math.max(0, leg.strike - price);
+                const unitPnl = leg.action === 'buy'
+                    ? (intrinsic - leg.premium)
+                    : (leg.premium - intrinsic);
+                total += unitPnl * leg.contracts * leg.multiplier;
+            });
+            return total - calculateTotalFees();
+        }
+
+        function updateCalculations() {
+            state.includeFees = document.getElementById('includeFees').checked;
+            state.feeRate = parseFloat(document.getElementById('feeRate').value) || 0;
+            saveState();
+
+            const targetPnl = evaluatePayoffAtPrice(state.targetPrice);
+
+            // Calculate Net Premium & Capital Deployed for ROI
+            let netPremium = 0;
+            let capitalRequired = 0;
+            if (state.includeUnderlying && state.underlyingQty !== 0) {
+                capitalRequired += Math.abs(state.underlyingQty) * state.spotPrice;
+            }
+            state.legs.forEach(leg => {
+                if (!leg.active) return;
+                const val = leg.premium * leg.contracts * leg.multiplier;
+                if (leg.action === 'buy') {
+                    netPremium -= val;
+                    capitalRequired += val;
+                } else {
+                    netPremium += val;
+                    capitalRequired += (leg.strike * leg.contracts * leg.multiplier * 0.2);
+                }
+            });
+
+            const roi = capitalRequired > 0 ? (targetPnl / capitalRequired) * 100 : 0;
+
+            // Sample wide range to determine Max Profit, Max Loss, and Breakeven points
+            const spot = state.spotPrice || 10000;
+            const strikes = state.legs.filter(l => l.active).map(l => l.strike);
+            const minGrid = 0;
+            const maxGrid = Math.max(spot * 2.5, strikes.length ? Math.max(...strikes) * 1.8 : spot * 2.5);
+            const steps = 400;
+            const stepSize = (maxGrid - minGrid) / steps;
+
+            let minPnl = Infinity;
+            let maxPnl = -Infinity;
+            const breakevens = [];
+            let prevP = minGrid;
+            let prevVal = evaluatePayoffAtPrice(prevP);
+
+            for (let i = 0; i <= steps; i++) {
+                const p = minGrid + i * stepSize;
+                const val = evaluatePayoffAtPrice(p);
+                if (val < minPnl) minPnl = val;
+                if (val > maxPnl) maxPnl = val;
+
+                if (i > 0) {
+                    if ((prevVal < 0 && val >= 0) || (prevVal > 0 && val <= 0)) {
+                        const t = Math.abs(prevVal) / (Math.abs(prevVal) + Math.abs(val) || 1);
+                        const bePrice = Math.round(prevP + t * (p - prevP));
+                        if (!breakevens.some(b => Math.abs(b - bePrice) < stepSize)) {
+                            breakevens.push(bePrice);
+                        }
+                    }
+                }
+                prevP = p;
+                prevVal = val;
+            }
+
+            // Check slope at far right end for unlimited profit/loss
+            const slopeRight = evaluatePayoffAtPrice(maxGrid + 100) - evaluatePayoffAtPrice(maxGrid);
+            const isUnlimitedProfit = slopeRight > 1;
+            const isUnlimitedLoss = slopeRight < -1;
+
+            // Update KPI UI
+            const pnlEl = document.getElementById('kpiTotalPnl');
+            pnlEl.textContent = formatSignedNum(targetPnl);
+            pnlEl.className = 'text-sm sm:text-base font-extrabold dir-ltr mt-0.5 ' +
+                (targetPnl > 0 ? 'text-emerald-500' : targetPnl < 0 ? 'text-rose-500' : 'text-slate-400');
+
+            const roiEl = document.getElementById('kpiRoi');
+            roiEl.textContent = (roi >= 0 ? '+' : '') + roi.toFixed(1) + '%';
+            roiEl.className = 'font-bold dir-ltr ' + (roi > 0 ? 'text-emerald-500' : roi < 0 ? 'text-rose-500' : 'text-slate-400');
+
+            document.getElementById('kpiBreakeven').textContent = breakevens.length > 0
+                ? breakevens.map(b => formatNum(b)).join(' / ')
+                : 'ندارد';
+
+            document.getElementById('kpiMaxProfit').textContent = isUnlimitedProfit ? 'نامحدود (+∞)' : formatSignedNum(maxPnl);
+            document.getElementById('kpiMaxLoss').textContent = isUnlimitedLoss ? 'نامحدود (-∞)' : formatSignedNum(minPnl);
+            document.getElementById('kpiNetPremium').textContent = 'صرف: ' + formatSignedNum(netPremium);
+
+            const rrEl = document.getElementById('kpiRiskReward');
+            if (!isUnlimitedProfit && !isUnlimitedLoss && minPnl < 0 && maxPnl > 0) {
+                rrEl.textContent = 'R/R: ' + (maxPnl / Math.abs(minPnl)).toFixed(2);
+            } else if (isUnlimitedProfit && minPnl < 0) {
+                rrEl.textContent = 'R/R: ∞';
+            } else {
+                rrEl.textContent = 'R/R: —';
+            }
+
+            updateBreakdownTable();
+            drawPayoffChart();
+        }
+
+        function updateBreakdownTable() {
+            const tbody = document.getElementById('breakdownTableBody');
+            if (!tbody) return;
+
+            const rows = [];
+            if (state.includeUnderlying && state.underlyingQty !== 0) {
+                const pnl = (state.targetPrice - state.spotPrice) * state.underlyingQty;
+                rows.push({
+                    name: state.underlyingQty > 0 ? 'دارایی پایه (خرید)' : 'دارایی پایه (فروش)',
+                    strike: formatNum(state.spotPrice),
+                    premium: '—',
+                    qty: formatNum(state.underlyingQty),
+                    pnl
+                });
+            }
+
+            state.legs.forEach(leg => {
+                if (!leg.active) return;
+                const intrinsic = leg.type === 'call'
+                    ? Math.max(0, state.targetPrice - leg.strike)
+                    : Math.max(0, leg.strike - state.targetPrice);
+                const unitPnl = leg.action === 'buy'
+                    ? (intrinsic - leg.premium)
+                    : (leg.premium - intrinsic);
+                const pnl = unitPnl * leg.contracts * leg.multiplier;
+
+                rows.push({
+                    name: `${leg.action === 'buy' ? 'خرید' : 'فروش'} ${leg.type === 'call' ? 'کال' : 'پوت'}`,
+                    strike: formatNum(leg.strike),
+                    premium: formatNum(leg.premium),
+                    qty: `${leg.contracts} × ${formatNum(leg.multiplier)}`,
+                    pnl
+                });
+            });
+
+            const fees = calculateTotalFees();
+            if (fees > 0) {
+                rows.push({
+                    name: 'کارمزد کل معاملات',
+                    strike: '—',
+                    premium: state.feeRate + '%',
+                    qty: '—',
+                    pnl: -fees
+                });
+            }
+
+            if (rows.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-3 text-center text-slate-400">موقعیت فعالی وجود ندارد</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = rows.map(r => `
+                <tr>
+                    <td class="py-1.5 px-1.5 font-semibold">${r.name}</td>
+                    <td class="py-1.5 px-1.5 font-mono">${r.strike}</td>
+                    <td class="py-1.5 px-1.5 font-mono">${r.premium}</td>
+                    <td class="py-1.5 px-1.5 font-mono">${r.qty}</td>
+                    <td class="py-1.5 px-1.5 text-left font-bold dir-ltr ${r.pnl > 0 ? 'text-emerald-500' : r.pnl < 0 ? 'text-rose-500' : 'text-slate-400'}">${formatSignedNum(r.pnl)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function drawPayoffChart() {
+            const canvas = document.getElementById('payoffChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const isDark = document.documentElement.classList.contains('dark');
+
+            const spot = state.spotPrice || 10000;
+            const strikes = state.legs.filter(l => l.active).map(l => l.strike);
+            const allPoints = [spot, state.targetPrice, ...strikes].filter(v => v > 0);
+            const minRef = Math.min(...allPoints);
+            const maxRef = Math.max(...allPoints);
+
+            const chartMin = Math.max(0, Math.floor(minRef * 0.75));
+            const chartMax = Math.ceil(maxRef * 1.25);
+            const pointsCount = 80;
+            const step = (chartMax - chartMin) / pointsCount;
+
+            const labels = [];
+            const dataPoints = [];
+            for (let i = 0; i <= pointsCount; i++) {
+                const p = Math.round(chartMin + i * step);
+                labels.push(p);
+                dataPoints.push(evaluatePayoffAtPrice(p));
+            }
+
+            if (payoffChartInstance) {
+                payoffChartInstance.destroy();
+            }
+
+            const targetMarkerPlugin = {
+                id: 'targetMarkerPlugin',
+                afterDatasetsDraw(chart) {
+                    const { ctx, chartArea: { top, bottom, left, right }, scales: { x, y } } = chart;
+                    const xPos = x.getPixelForValue(state.targetPrice);
+                    const targetVal = evaluatePayoffAtPrice(state.targetPrice);
+                    const yPos = y.getPixelForValue(targetVal);
+
+                    if (xPos >= left && xPos <= right) {
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.setLineDash([4, 4]);
+                        ctx.strokeStyle = '#3b82f6';
+                        ctx.lineWidth = 1.5;
+                        ctx.moveTo(xPos, top);
+                        ctx.lineTo(xPos, bottom);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+
+                        // Target dot
+                        ctx.beginPath();
+                        ctx.arc(xPos, yPos, 5, 0, Math.PI * 2);
+                        ctx.fillStyle = targetVal >= 0 ? '#10b981' : '#f43f5e';
+                        ctx.fill();
+                        ctx.lineWidth = 2;
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                }
+            };
+
+            payoffChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'سود / زیان',
+                        data: dataPoints,
+                        borderWidth: 2.5,
+                        pointRadius: 0,
+                        pointHoverRadius: 5,
+                        tension: 0,
+                        segment: {
+                            borderColor: c => (c.p0.parsed.y >= 0 && c.p1.parsed.y >= 0) ? '#10b981' : (c.p0.parsed.y < 0 && c.p1.parsed.y < 0) ? '#f43f5e' : '#3b82f6'
+                        },
+                        fill: {
+                            target: 'origin',
+                            above: 'rgba(16, 185, 129, 0.14)',
+                            below: 'rgba(244, 63, 94, 0.14)'
+                        }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            rtl: true,
+                            callbacks: {
+                                title: (items) => 'قیمت سررسید: ' + formatNum(items[0].parsed.x),
+                                label: (item) => 'سود/زیان: ' + formatSignedNum(item.parsed.y)
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            min: chartMin,
+                            max: chartMax,
+                            grid: {
+                                color: isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(100, 116, 139, 0.12)'
+                            },
+                            ticks: {
+                                color: isDark ? '#94a3b8' : '#475569',
+                                font: { size: 10 },
+                                callback: (val) => formatNum(val)
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: (ctx) => ctx.tick && ctx.tick.value === 0
+                                    ? (isDark ? 'rgba(255, 255, 255, 0.35)' : 'rgba(15, 23, 42, 0.35)')
+                                    : (isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(100, 116, 139, 0.12)'),
+                                lineWidth: (ctx) => (ctx.tick && ctx.tick.value === 0) ? 1.5 : 1
+                            },
+                            ticks: {
+                                color: isDark ? '#94a3b8' : '#475569',
+                                font: { size: 10 },
+                                callback: (val) => formatSignedNum(val)
+                            }
+                        }
+                    }
+                },
+                plugins: [targetMarkerPlugin]
+            });
+        }
+
+        // ==========================================
+        // 7. MODALS, TABS, TOAST & REPORT EXPORT
+        // ==========================================
+        const GUIDE_CHAPTERS = [
+            'tabBasics',
+            'tabFourPositions',
+            'tabMarginSettlement',
+            'tabTermsGreeks',
+            'tabStrategies',
+            'tabAppUsage'
+        ];
+        let currentGuideIndex = 0;
+
+        function switchGuideTab(tabId) {
+            const idx = GUIDE_CHAPTERS.indexOf(tabId);
+            if (idx !== -1) currentGuideIndex = idx;
+
+            document.querySelectorAll('.guide-tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+
+            document.querySelectorAll('.guide-tab-btn').forEach(btn => {
+                btn.classList.remove('border-blue-600', 'text-blue-600', 'dark:text-blue-400');
+                btn.classList.add('border-transparent', 'text-slate-500');
+            });
+            const activeBtn = document.getElementById('btn_' + tabId);
+            activeBtn.classList.remove('border-transparent', 'text-slate-500');
+            activeBtn.classList.add('border-blue-600', 'text-blue-600', 'dark:text-blue-400');
+
+            // Scroll content back to top on chapter switch
+            const scrollArea = document.getElementById('guideScrollArea');
+            if (scrollArea) scrollArea.scrollTop = 0;
+
+            // Update Previous/Next button states
+            const prevBtn = document.getElementById('prevChapterBtn');
+            const nextBtn = document.getElementById('nextChapterBtn');
+            if (prevBtn) prevBtn.disabled = currentGuideIndex <= 0;
+            if (nextBtn) nextBtn.disabled = currentGuideIndex >= GUIDE_CHAPTERS.length - 1;
+        }
+
+        function navigateGuideChapter(direction) {
+            const nextIdx = currentGuideIndex + direction;
+            if (nextIdx >= 0 && nextIdx < GUIDE_CHAPTERS.length) {
+                switchGuideTab(GUIDE_CHAPTERS[nextIdx]);
+            }
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+            if (id === 'guideModal') {
+                switchGuideTab(GUIDE_CHAPTERS[currentGuideIndex]);
+            }
+        }
+
+        function closeModal(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hidden');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            if (!toast) return;
+            toast.textContent = message;
+            toast.classList.remove('hidden');
+            clearTimeout(window.__toastTimer);
+            window.__toastTimer = setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        function copySummaryReport() {
+            const totalPnl = document.getElementById('kpiTotalPnl')?.textContent || '0';
+            const breakeven = document.getElementById('kpiBreakeven')?.textContent || '—';
+            const maxProfit = document.getElementById('kpiMaxProfit')?.textContent || '0';
+            const maxLoss = document.getElementById('kpiMaxLoss')?.textContent || '0';
+
+            const activeLegsText = state.legs
+                .filter(l => l.active)
+                .map(l => `• ${l.action === 'buy' ? 'خرید' : 'فروش'} ${l.type === 'call' ? 'کال' : 'پوت'} | اعمال: ${formatNum(l.strike)} | پرمیوم: ${formatNum(l.premium)} | تعداد: ${l.contracts}`)
+                .join('\n');
+
+            const report = [
+                '📊 گزارش تحلیل استراتژی اختیار معامله',
+                `قیمت فعلی پایه: ${formatNum(state.spotPrice)}`,
+                `قیمت هدف سررسید: ${formatNum(state.targetPrice)}`,
+                state.includeUnderlying ? `دارایی پایه: ${formatNum(state.underlyingQty)} سهم` : 'دارایی پایه: بدون سهام پایه',
+                '--- موقعیت‌ها ---',
+                activeLegsText || 'بدون قرارداد فعال',
+                '--- نتایج تحلیل ---',
+                `سود/زیان در قیمت هدف: ${totalPnl}`,
+                `نقطه سر به سر: ${breakeven}`,
+                `حداکثر سود: ${maxProfit}`,
+                `حداکثر زیان: ${maxLoss}`
+            ].join('\n');
+
+            const tempArea = document.createElement('textarea');
+            tempArea.value = report;
+            document.body.appendChild(tempArea);
+            tempArea.select();
+            try {
+                document.execCommand('copy');
+                showToast('گزارش تحلیل در حافظه کپی شد!');
+            } catch (e) {
+                showToast('خطا در کپی کردن گزارش');
+            }
+            document.body.removeChild(tempArea);
+        }
+
+        // ==========================================
+        // 8. PWA MANIFEST, OFFLINE CACHE & INSTALL
+        // ==========================================
+        let deferredPrompt = null;
+
+        function generatePngIconDataUrl(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+
+            const grad = ctx.createLinearGradient(0, 0, size, size);
+            grad.addColorStop(0, '#2563eb');
+            grad.addColorStop(1, '#4f46e5');
+            ctx.fillStyle = grad;
+            roundRect(ctx, 0, 0, size, size, size * 0.22);
+            ctx.fill();
+
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = size * 0.07;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            ctx.moveTo(size * 0.2, size * 0.68);
+            ctx.lineTo(size * 0.48, size * 0.68);
+            ctx.lineTo(size * 0.8, size * 0.28);
+            ctx.stroke();
+
+            return canvas.toDataURL('image/png');
+        }
+
+        function setupPWA() {
+            try {
+                const icon192 = generatePngIconDataUrl(192);
+                const icon512 = generatePngIconDataUrl(512);
+
+                const manifestObj = {
+                    name: 'آپشن‌یار: تحلیلگر و آموزش اختیار معامله',
+                    short_name: 'آپشن‌یار',
+                    description: 'تحلیلگر حرفه‌ای سود و زیان، استراتژی‌ها و آکادمی جامع اختیار معامله بورس',
+                    start_url: '.',
+                    scope: '.',
+                    display: 'standalone',
+                    background_color: '#0f172a',
+                    theme_color: '#2563eb',
+                    orientation: 'any',
+                    icons: [
+                        { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+                        { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+                    ]
+                };
+
+                const manifestLink = document.createElement('link');
+                manifestLink.rel = 'manifest';
+                manifestLink.href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifestObj));
+                document.head.appendChild(manifestLink);
+
+                if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+                    const swCode = `
+                        const CACHE_NAME = 'options-calc-offline-v1';
+                        const ASSETS = [
+                            self.location.href,
+                            'https://cdn.tailwindcss.com',
+                            'https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css',
+                            'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+                            'https://cdn.jsdelivr.net/npm/chart.js'
+                        ];
+                        self.addEventListener('install', event => {
+                            event.waitUntil(
+                                caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)).catch(() => {})
+                            );
+                            self.skipWaiting();
+                        });
+                        self.addEventListener('activate', event => {
+                            event.waitUntil(self.clients.claim());
+                        });
+                        self.addEventListener('fetch', event => {
+                            event.respondWith(
+                                caches.match(event.request).then(cached => {
+                                    return cached || fetch(event.request).then(response => {
+                                        const clone = response.clone();
+                                        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone)).catch(() => {});
+                                        return response;
+                                    }).catch(() => cached);
+                                })
+                            );
+                        });
+                    `;
+                    const swBlob = new Blob([swCode], { type: 'application/javascript' });
+                    const swUrl = URL.createObjectURL(swBlob);
+                    navigator.serviceWorker.register(swUrl).catch(() => {});
+                }
+            } catch (e) {
+                console.warn('PWA setup skipped:', e);
+            }
+
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+            });
+        }
+
+        async function triggerPwaInstall() {
+            if (!deferredPrompt) {
+                openModal('pwaModal');
+                return;
+            }
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                showToast('برنامه با موفقیت روی دستگاه شما نصب شد!');
+            }
+            deferredPrompt = null;
+        }
+
+        // Boot Application
+        window.addEventListener('DOMContentLoaded', () => {
+            checkLicenseState();
+            initTheme();
+            loadSavedState();
+            syncInputsFromState();
+            renderLegs();
+            updateCalculations();
+            setupPWA();
+        });
+    </script>
+</body>
+</html>
